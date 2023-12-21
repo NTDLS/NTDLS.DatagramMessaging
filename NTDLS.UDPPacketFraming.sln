@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34309.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTDLS.UDPPacketFraming", "NTDLS.UDPPacketFraming\NTDLS.UDPPacketFraming.csproj", "{45BBDB82-9128-477D-9CFA-31C89BB4743F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestHarness", "TestHarness", "{3A3E0A23-8C28-4B79-8300-8599BE2565E0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PacketFraming.TestHarness.Client", "PacketFraming.TestHarness.Client\PacketFraming.TestHarness.Client.csproj", "{668256B3-08F4-4982-BBB4-639B1A0EEFCB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PacketFraming.TestHarness.Server", "PacketFraming.TestHarness.Server\PacketFraming.TestHarness.Server.csproj", "{5EDFAD64-9379-461E-8A20-B24DD38D684B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PacketFraming.TestHarness.Shared", "PacketFraming.TestHarness.Shared\PacketFraming.TestHarness.Shared.csproj", "{BA32058D-1BF5-4A82-B76C-7818E0FD4E7D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Package", "Package", "{4E8EAC70-CF3A-42F3-B0BA-E59FEA5CBA94}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{45BBDB82-9128-477D-9CFA-31C89BB4743F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45BBDB82-9128-477D-9CFA-31C89BB4743F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45BBDB82-9128-477D-9CFA-31C89BB4743F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45BBDB82-9128-477D-9CFA-31C89BB4743F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{668256B3-08F4-4982-BBB4-639B1A0EEFCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{668256B3-08F4-4982-BBB4-639B1A0EEFCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{668256B3-08F4-4982-BBB4-639B1A0EEFCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{668256B3-08F4-4982-BBB4-639B1A0EEFCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EDFAD64-9379-461E-8A20-B24DD38D684B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EDFAD64-9379-461E-8A20-B24DD38D684B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EDFAD64-9379-461E-8A20-B24DD38D684B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EDFAD64-9379-461E-8A20-B24DD38D684B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA32058D-1BF5-4A82-B76C-7818E0FD4E7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA32058D-1BF5-4A82-B76C-7818E0FD4E7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA32058D-1BF5-4A82-B76C-7818E0FD4E7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA32058D-1BF5-4A82-B76C-7818E0FD4E7D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{668256B3-08F4-4982-BBB4-639B1A0EEFCB} = {3A3E0A23-8C28-4B79-8300-8599BE2565E0}
+		{5EDFAD64-9379-461E-8A20-B24DD38D684B} = {3A3E0A23-8C28-4B79-8300-8599BE2565E0}
+		{BA32058D-1BF5-4A82-B76C-7818E0FD4E7D} = {3A3E0A23-8C28-4B79-8300-8599BE2565E0}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {57454B9D-E3FB-4318-AE39-73B6071F8C1D}
+	EndGlobalSection
+EndGlobal
