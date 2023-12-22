@@ -14,12 +14,13 @@
     <PackageProjectUrl>https://github.com/NTDLS/NTDLS.UDPPacketFraming</PackageProjectUrl>
     <RepositoryUrl>https://github.com/NTDLS/NTDLS.UDPPacketFraming</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
-    <PackageReleaseNotes>Initial release.
+    <PackageReleaseNotes>
+      Resolved unhandled exception in UDP receive.
     </PackageReleaseNotes>
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0</AssemblyVersion>
-    <FileVersion>1.0.0</FileVersion>
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.1</AssemblyVersion>
+    <FileVersion>1.0.1</FileVersion>
+    <VersionPrefix>1.0.1</VersionPrefix>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageTags>UPD;framing;network;io;framing</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
