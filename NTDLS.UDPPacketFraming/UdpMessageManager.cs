@@ -12,7 +12,7 @@ namespace NTDLS.UDPPacketFraming
     /// </summary>
     public class UdpMessageManager
     {
-        private static Random _random = new Random();
+        private static readonly Random _random = new();
         private bool _keepRunning = false;
         private Thread? _receiveThread = null;
 
@@ -195,9 +195,15 @@ namespace NTDLS.UDPPacketFraming
 
             _receiveThread = new Thread(o =>
             {
-                while (_keepRunning && Client.ReadAndProcessFrames(ref clientEndPoint, frameBuffer, processNotificationCallback))
+                while (_keepRunning)
                 {
-                    Thread.Sleep(0);
+                    try
+                    {
+                        while (Client.ReadAndProcessFrames(ref clientEndPoint, frameBuffer, processNotificationCallback))
+                        {
+                        }
+                    }
+                    catch { }
                 }
             });
 

@@ -48,7 +48,18 @@ namespace NTDLS.UDPPacketFraming
         {
             try
             {
-                ReceiveBuffer = udpClient.Receive(ref endPoint);
+                try
+                {
+                    ReceiveBuffer = udpClient.Receive(ref endPoint);
+                }
+                catch (SocketException ex)
+                {
+                    if (ex.SocketErrorCode != SocketError.Interrupted)
+                    {
+                        throw;
+                    }
+                    return false; //Graceful disconnect.
+                }
                 ReceiveBufferUsed = ReceiveBuffer.Length;
 
                 if (ReceiveBufferUsed == 0)
