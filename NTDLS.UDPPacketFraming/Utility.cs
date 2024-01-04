@@ -126,7 +126,7 @@ namespace NTDLS.UDPPacketFraming
 
             using var msi = new MemoryStream(bytes);
             using var mso = new MemoryStream();
-            using (var gs = new DeflateStream(mso, CompressionLevel.SmallestSize))
+            using (var gs = new DeflateStream(mso, CompressionLevel.Fastest))
             {
                 msi.CopyTo(gs);
             }

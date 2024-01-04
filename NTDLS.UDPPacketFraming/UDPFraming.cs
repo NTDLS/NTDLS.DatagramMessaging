@@ -163,8 +163,8 @@ namespace NTDLS.UDPPacketFraming
 
         private static byte[] AssembleFrame(FrameBody frameBody)
         {
-            var FrameBodyBytes = Utility.SerializeToByteArray(frameBody);
-            var compressedFrameBodyBytes = Utility.Compress(FrameBodyBytes);
+            var frameBodyBytes = Utility.SerializeToByteArray(frameBody);
+            var compressedFrameBodyBytes = Utility.Compress(frameBodyBytes);
 
             var grossFrameSize = compressedFrameBodyBytes.Length + NtFrameDefaults.FRAME_HEADER_SIZE;
             var grossFrameBytes = new byte[grossFrameSize];
