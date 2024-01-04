@@ -17,10 +17,10 @@
     <PackageReleaseNotes>
       Removed image, reduced compression overhead.
     </PackageReleaseNotes>
-    <Version>1.0.3</Version>
-    <AssemblyVersion>1.0.3</AssemblyVersion>
-    <FileVersion>1.0.3</FileVersion>
-    <VersionPrefix>1.0.3</VersionPrefix>
+    <Version>1.0.4</Version>
+    <AssemblyVersion>1.0.4</AssemblyVersion>
+    <FileVersion>1.0.4</FileVersion>
+    <VersionPrefix>1.0.4</VersionPrefix>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageTags>UPD;framing;network;io;framing</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
