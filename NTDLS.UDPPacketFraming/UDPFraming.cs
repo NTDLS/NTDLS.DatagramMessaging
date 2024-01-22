@@ -23,7 +23,7 @@ namespace NTDLS.UDPPacketFraming
         /// <param name="payload">The notification payload.</param>
         public delegate void ProcessFrameNotificationCallback(IUDPPayloadNotification payload);
 
-        private static readonly PessimisticSemaphore<Dictionary<string, MethodInfo>> _reflectioncache = new();
+        private static readonly PessimisticCriticalResource<Dictionary<string, MethodInfo>> _reflectioncache = new();
 
         #region Extension methods.
 

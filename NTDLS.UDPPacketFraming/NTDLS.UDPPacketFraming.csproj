@@ -15,12 +15,12 @@
     <RepositoryUrl>https://github.com/NTDLS/NTDLS.UDPPacketFraming</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageReleaseNotes>
-      Removed image, reduced compression overhead.
+      nuget updates.
     </PackageReleaseNotes>
-    <Version>1.0.4</Version>
-    <AssemblyVersion>1.0.4</AssemblyVersion>
-    <FileVersion>1.0.4</FileVersion>
-    <VersionPrefix>1.0.4</VersionPrefix>
+    <Version>1.0.5</Version>
+    <AssemblyVersion>1.0.5</AssemblyVersion>
+    <FileVersion>1.0.5</FileVersion>
+    <VersionPrefix>1.0.5</VersionPrefix>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageTags>UPD;framing;network;io;framing</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
@@ -47,7 +47,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NTDLS.Semaphore" Version="3.1.1" />
+    <PackageReference Include="NTDLS.Semaphore" Version="3.3.0" />
     <PackageReference Include="protobuf-net" Version="3.2.30" />
   </ItemGroup>
 
