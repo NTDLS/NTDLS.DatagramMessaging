@@ -1,4 +1,5 @@
-﻿using PacketFraming.TestHarness.Shared;
+﻿using NTDLS.DatagramMessaging;
+using PacketFraming.TestHarness.Shared;
 
 namespace PacketFraming.TestHarness.Client
 {

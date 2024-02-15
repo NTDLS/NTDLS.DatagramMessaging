@@ -1,5 +1,4 @@
-﻿using NTDLS.DatagramMessaging.Payloads;
-using ProtoBuf;
+﻿using ProtoBuf;
 using System;
 using System.Text;
 
@@ -34,7 +33,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// Instanciates a frame payload with a serialized payload.
         /// </summary>
         /// <param name="framePayload"></param>
-        public FrameBody(IUDPFramePayload framePayload)
+        public FrameBody(IDmPayload framePayload)
         {
             ObjectType = framePayload.GetType()?.AssemblyQualifiedName ?? string.Empty;
             Bytes = Encoding.UTF8.GetBytes(Utility.JsonSerialize(framePayload));

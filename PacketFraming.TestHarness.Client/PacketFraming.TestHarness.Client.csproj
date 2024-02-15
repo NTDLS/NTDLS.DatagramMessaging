@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NTDLS.DatagramMessaging\NTDLS.DatagramMessaging.csproj" />
     <ProjectReference Include="..\PacketFraming.TestHarness.Shared\PacketFraming.TestHarness.Shared.csproj" />
   </ItemGroup>
 

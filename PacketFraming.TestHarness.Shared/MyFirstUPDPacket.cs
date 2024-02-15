@@ -1,6 +1,8 @@
-﻿namespace PacketFraming.TestHarness.Shared
+﻿using NTDLS.DatagramMessaging;
+
+namespace PacketFraming.TestHarness.Shared
 {
-    public class MyFirstUPDPacket : IUDPPayloadNotification
+    public class MyFirstUPDPacket : IDmNotification
     {
         public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
         public Guid UID { get; set; } = Guid.NewGuid();

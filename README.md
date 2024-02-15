@@ -12,10 +12,10 @@ and adds compression.
 ```csharp
 static void Main()
 {
-    var udpManager = new DmMessenger(1234, ProcessFrameNotificationCallback);
+    var dmMessenger = new DmMessenger(1234, ProcessFrameNotificationCallback);
 }
 
-private static void ProcessFrameNotificationCallback(IUDPPayloadNotification payload)
+private static void ProcessFrameNotificationCallback(IDmNotification payload)
 {
     if (payload is MyFirstUPDPacket myFirstUPDPacket)
     {
@@ -30,13 +30,13 @@ private static void ProcessFrameNotificationCallback(IUDPPayloadNotification pay
 ```csharp
 static void Main()
 {
-    var udpManager = new DmMessenger();
+    var dmMessenger = new DmMessenger();
 
     int packetNumber = 0;
 
     while (true)
     {
-        udpManager.WriteMessage("127.0.0.1", 1234,
+        dmMessenger.WriteMessage("127.0.0.1", 1234,
             new MyFirstUPDPacket($"Packet#:{packetNumber++} "));
 
         Thread.Sleep(100);
@@ -48,7 +48,7 @@ static void Main()
 > The class that we are going to be serializing and deserializing in the examples.
 
 ```csharp
-public class MyFirstUPDPacket: IUDPPayloadNotification
+public class MyFirstUPDPacket: IDmNotification
 {
     public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
     public Guid UID { get; set; } = Guid.NewGuid();

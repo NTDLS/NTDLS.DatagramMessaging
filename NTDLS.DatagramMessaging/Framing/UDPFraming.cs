@@ -1,5 +1,4 @@
 ﻿using NTDLS.DatagramMessaging.Payloads;
-using NTDLS.DatagramMessaging.Payloads.Concrete;
 using NTDLS.Semaphore;
 using System;
 using System.Collections.Generic;
@@ -21,7 +20,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// The callback that is used to notify of the receipt of a notification frame.
         /// </summary>
         /// <param name="payload">The notification payload.</param>
-        public delegate void ProcessFrameNotificationCallback(IUDPPayloadNotification payload);
+        public delegate void ProcessFrameNotificationCallback(IDmNotification payload);
 
         private static readonly PessimisticCriticalResource<Dictionary<string, MethodInfo>> _reflectioncache = new();
 
@@ -61,7 +60,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="hostOrIPAddress">Host or IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
         /// <exception cref="Exception"></exception>
-        public static void WriteNotificationFrame(this UdpClient udpClient, string hostOrIPAddress, int port, IUDPPayloadNotification framePayload)
+        public static void WriteNotificationFrame(this UdpClient udpClient, string hostOrIPAddress, int port, IDmNotification framePayload)
         {
             var frameBody = new FrameBody(framePayload);
             var frameBytes = AssembleFrame(frameBody);
@@ -76,7 +75,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="ipAddress">IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
         /// <exception cref="Exception"></exception>
-        public static void WriteNotificationFrame(this UdpClient udpClient, IPAddress ipAddress, int port, IUDPPayloadNotification framePayload)
+        public static void WriteNotificationFrame(this UdpClient udpClient, IPAddress ipAddress, int port, IDmNotification framePayload)
         {
             var frameBody = new FrameBody(framePayload);
             var frameBytes = AssembleFrame(frameBody);
@@ -90,7 +89,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
         /// <param name="framePayload">The notification payload that will be sent.</param>
         /// <exception cref="Exception"></exception>
-        public static void WriteNotificationFrame(this UdpClient udpClient, IPEndPoint endpoint, IUDPPayloadNotification framePayload)
+        public static void WriteNotificationFrame(this UdpClient udpClient, IPEndPoint endpoint, IDmNotification framePayload)
         {
             var frameBody = new FrameBody(framePayload);
             var frameBytes = AssembleFrame(frameBody);
@@ -265,7 +264,7 @@ namespace NTDLS.DatagramMessaging.Framing
                 {
                     processNotificationCallback(frameNotificationBytes);
                 }
-                else if (framePayload is IUDPPayloadNotification notification)
+                else if (framePayload is IDmNotification notification)
                 {
                     processNotificationCallback(notification);
                 }
@@ -283,7 +282,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="frame"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private static IUDPFramePayload ExtractFramePayload(FrameBody frame)
+        private static IDmPayload ExtractFramePayload(FrameBody frame)
         {
             if (frame.ObjectType == "byte[]")
             {
@@ -303,7 +302,7 @@ namespace NTDLS.DatagramMessaging.Framing
 
             if (genericToObjectMethod != null)
             {
-                return (IUDPFramePayload?)genericToObjectMethod.Invoke(null, new object[] { json })
+                return (IDmPayload?)genericToObjectMethod.Invoke(null, new object[] { json })
                     ?? throw new Exception($"ExtractFramePayload: Payload can not be null.");
             }
 
@@ -317,7 +316,7 @@ namespace NTDLS.DatagramMessaging.Framing
 
             _reflectioncache.Use((o) => o.TryAdd(frame.ObjectType, genericToObjectMethod));
 
-            return (IUDPFramePayload?)genericToObjectMethod.Invoke(null, new object[] { json })
+            return (IDmPayload?)genericToObjectMethod.Invoke(null, new object[] { json })
                 ?? throw new Exception($"ExtractFramePayload: Payload can not be null.");
         }
     }

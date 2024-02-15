@@ -1,10 +1,10 @@
-﻿namespace NTDLS.DatagramMessaging.Payloads.Concrete
+﻿namespace NTDLS.DatagramMessaging.Payloads
 {
     /// <summary>
     /// Used to send a payload of a raw byte array. Used by WriteBytesFrame() and handled in processNotificationCallback().
     /// When a raw byte array is use, all json serilization is skipped and checks for this payload type are prioritized for performance.
     /// </summary>
-    public class UDPFramePayloadBytes : IUDPPayloadNotification
+    public class UDPFramePayloadBytes : IDmNotification
     {
         /// <summary>
         /// The payload bytes of the frame.

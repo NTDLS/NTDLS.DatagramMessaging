@@ -1,4 +1,5 @@
-﻿using PacketFraming.TestHarness.Shared;
+﻿using NTDLS.DatagramMessaging;
+using PacketFraming.TestHarness.Shared;
 
 namespace PacketFraming.TestHarness.Server
 {
@@ -9,7 +10,7 @@ namespace PacketFraming.TestHarness.Server
             var udpManager = new DmMessenger(1234, ProcessFrameNotificationCallback);
         }
 
-        private static void ProcessFrameNotificationCallback(IUDPPayloadNotification payload)
+        private static void ProcessFrameNotificationCallback(IDmNotification payload)
         {
             if (payload is MyFirstUPDPacket myFirstUPDPacket)
             {

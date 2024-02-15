@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\NTDLS.DatagramMessaging\NTDLS.DatagramMessaging.csproj" />
+  </ItemGroup>
+
 </Project>

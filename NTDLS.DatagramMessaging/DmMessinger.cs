@@ -1,5 +1,4 @@
 ﻿using NTDLS.DatagramMessaging.Framing;
-using NTDLS.DatagramMessaging.Payloads;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -113,7 +112,7 @@ namespace NTDLS.DatagramMessaging
         /// <param name="port"></param>
         /// <param name="payload"></param>
         /// <exception cref="Exception"></exception>
-        public void WriteMessage(string hostOrIPAddress, int port, IUDPPayloadNotification payload)
+        public void WriteMessage(string hostOrIPAddress, int port, IDmNotification payload)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
             Client.WriteNotificationFrame(hostOrIPAddress, port, payload);
@@ -126,7 +125,7 @@ namespace NTDLS.DatagramMessaging
         /// <param name="port"></param>
         /// <param name="payload"></param>
         /// <exception cref="Exception"></exception>
-        public void WriteMessage(IPAddress ipAddress, int port, IUDPPayloadNotification payload)
+        public void WriteMessage(IPAddress ipAddress, int port, IDmNotification payload)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
             Client.WriteNotificationFrame(ipAddress, port, payload);
@@ -138,7 +137,7 @@ namespace NTDLS.DatagramMessaging
         /// <param name="endpoint"></param>
         /// <param name="payload"></param>
         /// <exception cref="Exception"></exception>
-        public void WriteMessage(IPEndPoint endpoint, IUDPPayloadNotification payload)
+        public void WriteMessage(IPEndPoint endpoint, IDmNotification payload)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
             Client.WriteNotificationFrame(endpoint, payload);
