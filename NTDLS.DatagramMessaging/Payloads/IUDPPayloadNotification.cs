@@ -1,4 +1,4 @@
-﻿namespace NTDLS.UDPPacketFraming.Payloads
+﻿namespace NTDLS.DatagramMessaging.Payloads
 {
     /// <summary>
     /// All simple notifications frames must in herit from this interface and be json serializable.

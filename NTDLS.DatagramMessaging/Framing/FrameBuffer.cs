@@ -3,7 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 
-namespace NTDLS.UDPPacketFraming
+namespace NTDLS.DatagramMessaging.Framing
 {
     /// <summary>
     /// Auto-resizing frame buffer for receiving and frame reassembly.

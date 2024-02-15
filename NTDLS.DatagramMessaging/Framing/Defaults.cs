@@ -1,4 +1,4 @@
-﻿namespace NTDLS.UDPPacketFraming
+﻿namespace NTDLS.DatagramMessaging.Framing
 {
     internal static class Defaults
     {

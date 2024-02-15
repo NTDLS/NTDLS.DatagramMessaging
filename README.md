@@ -1,18 +1,18 @@
-# NTDLS.UDPPacketFraming
+# NTDLS.DatagramMessaging
 
-📦 Be sure to check out the NuGet pacakge: https://www.nuget.org/packages/NTDLS.UDPPacketFraming
+📦 Be sure to check out the NuGet pacakge: https://www.nuget.org/packages/NTDLS.DatagramMessaging
 
-NTDLS.UDPPacketFraming is a set of classes and extensions methods that allow you to send/receive
+NTDLS.DatagramMessaging is a set of classes and extensions methods that allow you to send/receive
 UPD packets with ease. It handles corruption checks, concatenation, fragmentation, serialization
 and adds compression.
 
 ## UPD Sever:
-> Here we are instantiating a UdpMessageManager and giving it a listen port. This will cause the
+> Here we are instantiating a DmMessenger and giving it a listen port. This will cause the
 > manager to go into listen mode and pass any received frames to the supplied callback.
 ```csharp
 static void Main()
 {
-    var udpManager = new UdpMessageManager(1234, ProcessFrameNotificationCallback);
+    var udpManager = new DmMessenger(1234, ProcessFrameNotificationCallback);
 }
 
 private static void ProcessFrameNotificationCallback(IUDPPayloadNotification payload)
@@ -25,12 +25,12 @@ private static void ProcessFrameNotificationCallback(IUDPPayloadNotification pay
 ```
 
 ## UPD Client:
-> Here we are instantiating a UdpMessageManager without a a listen port. This means that this this
+> Here we are instantiating a DmMessenger without a a listen port. This means that this this
 > manager is in write-only mode. We are going to loop and send frames containing serialized MyFirstUDPPacket.
 ```csharp
 static void Main()
 {
-    var udpManager = new UdpMessageManager();
+    var udpManager = new DmMessenger();
 
     int packetNumber = 0;
 

@@ -1,4 +1,4 @@
-﻿namespace NTDLS.UDPPacketFraming.Payloads.Concrete
+﻿namespace NTDLS.DatagramMessaging.Payloads.Concrete
 {
     /// <summary>
     /// Used to send a payload of a raw byte array. Used by WriteBytesFrame() and handled in processNotificationCallback().

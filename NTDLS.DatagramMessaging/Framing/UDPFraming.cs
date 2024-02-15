@@ -1,15 +1,15 @@
-﻿using NTDLS.Semaphore;
-using NTDLS.UDPPacketFraming.Payloads;
-using NTDLS.UDPPacketFraming.Payloads.Concrete;
+﻿using NTDLS.DatagramMessaging.Payloads;
+using NTDLS.DatagramMessaging.Payloads.Concrete;
+using NTDLS.Semaphore;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
-using static NTDLS.UDPPacketFraming.Defaults;
+using static NTDLS.DatagramMessaging.Framing.Defaults;
 
-namespace NTDLS.UDPPacketFraming
+namespace NTDLS.DatagramMessaging.Framing
 {
     /// <summary>
     /// UDP packets can be fragmented or combined. Framing rebuilds what was

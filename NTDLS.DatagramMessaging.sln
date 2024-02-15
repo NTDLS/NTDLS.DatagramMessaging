@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTDLS.UDPPacketFraming", "NTDLS.UDPPacketFraming\NTDLS.UDPPacketFraming.csproj", "{45BBDB82-9128-477D-9CFA-31C89BB4743F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NTDLS.DatagramMessaging", "NTDLS.DatagramMessaging\NTDLS.DatagramMessaging.csproj", "{45BBDB82-9128-477D-9CFA-31C89BB4743F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestHarness", "TestHarness", "{3A3E0A23-8C28-4B79-8300-8599BE2565E0}"
 EndProject

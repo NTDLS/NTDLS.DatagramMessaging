@@ -1,6 +1,4 @@
-﻿using NTDLS.UDPPacketFraming;
-using NTDLS.UDPPacketFraming.Payloads;
-using PacketFraming.TestHarness.Shared;
+﻿using PacketFraming.TestHarness.Shared;
 
 namespace PacketFraming.TestHarness.Server
 {
@@ -8,7 +6,7 @@ namespace PacketFraming.TestHarness.Server
     {
         static void Main()
         {
-            var udpManager = new UdpMessageManager(1234, ProcessFrameNotificationCallback);
+            var udpManager = new DmMessenger(1234, ProcessFrameNotificationCallback);
         }
 
         private static void ProcessFrameNotificationCallback(IUDPPayloadNotification payload)

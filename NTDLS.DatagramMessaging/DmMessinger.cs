@@ -1,16 +1,17 @@
-﻿using NTDLS.UDPPacketFraming.Payloads;
+﻿using NTDLS.DatagramMessaging.Framing;
+using NTDLS.DatagramMessaging.Payloads;
 using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using static NTDLS.UDPPacketFraming.UDPFraming;
+using static NTDLS.DatagramMessaging.Framing.UDPFraming;
 
-namespace NTDLS.UDPPacketFraming
+namespace NTDLS.DatagramMessaging
 {
     /// <summary>
     /// Wrapper for UdpClient. Set of classes and extensions methods that allow you to send/receive UPD packets with ease.
     /// </summary>
-    public class UdpMessageManager
+    public class DmMessenger
     {
         private static readonly Random _random = new();
         private bool _keepRunning = false;
@@ -26,7 +27,7 @@ namespace NTDLS.UDPPacketFraming
         /// </summary>
         /// <param name="listenPort"></param>
         /// <param name="processNotificationCallback"></param>
-        public UdpMessageManager(int listenPort, ProcessFrameNotificationCallback processNotificationCallback)
+        public DmMessenger(int listenPort, ProcessFrameNotificationCallback processNotificationCallback)
         {
             Client = new UdpClient(listenPort);
             ListenAsync(listenPort, processNotificationCallback);
@@ -35,7 +36,7 @@ namespace NTDLS.UDPPacketFraming
         /// <summary>
         /// Starts a new managed UPD handler that can send only.
         /// </summary>
-        public UdpMessageManager()
+        public DmMessenger()
         {
             Client = new UdpClient();
         }
@@ -43,7 +44,7 @@ namespace NTDLS.UDPPacketFraming
         /// <summary>
         /// Clean up any remaining resources.
         /// </summary>
-        ~UdpMessageManager()
+        ~DmMessenger()
         {
             try { Client?.Close(); } catch { }
             try { Client?.Dispose(); } catch { }
@@ -199,7 +200,7 @@ namespace NTDLS.UDPPacketFraming
                 {
                     try
                     {
-                        while (Client.ReadAndProcessFrames(ref clientEndPoint, frameBuffer, processNotificationCallback))
+                        while (_keepRunning && Client.ReadAndProcessFrames(ref clientEndPoint, frameBuffer, processNotificationCallback))
                         {
                         }
                     }

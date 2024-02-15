@@ -1,5 +1,4 @@
-﻿using NTDLS.UDPPacketFraming;
-using PacketFraming.TestHarness.Shared;
+﻿using PacketFraming.TestHarness.Shared;
 
 namespace PacketFraming.TestHarness.Client
 {
@@ -7,7 +6,7 @@ namespace PacketFraming.TestHarness.Client
     {
         static void Main()
         {
-            var udpManager = new UdpMessageManager();
+            var udpManager = new DmMessenger();
 
             int packetNumber = 0;
 

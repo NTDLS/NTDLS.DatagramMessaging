@@ -16,3 +16,7 @@ PacketFraming.TestHarness.Server/obj/
 PacketFraming.TestHarness.Shared/bin/
 
 PacketFraming.TestHarness.Shared/obj/
+
+NTDLS.DatagramMessaging/bin/
+
+NTDLS.DatagramMessaging/obj/

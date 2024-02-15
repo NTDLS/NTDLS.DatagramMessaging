@@ -1,10 +1,9 @@
-﻿using Newtonsoft.Json;
-using NTDLS.UDPPacketFraming.Payloads;
+﻿using NTDLS.DatagramMessaging.Payloads;
 using ProtoBuf;
 using System;
 using System.Text;
 
-namespace NTDLS.UDPPacketFraming
+namespace NTDLS.DatagramMessaging.Framing
 {
     /// <summary>
     /// Comprises the body of the frame. Contains the payload and all information needed to deserialize it.
