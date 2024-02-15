@@ -1,4 +1,4 @@
-﻿namespace NTDLS.DatagramMessaging.Payloads
+﻿namespace NTDLS.DatagramMessaging.Internal
 {
     /// <summary>
     /// Used to send a payload of a raw byte array. Used by WriteBytesFrame() and handled in processNotificationCallback().

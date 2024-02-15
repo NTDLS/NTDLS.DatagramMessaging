@@ -9,19 +9,19 @@
     <Authors>NetworkDLS</Authors>
     <Company>NetworkDLS</Company>
     <Product>NTDLS.UDPPacketFraming</Product>
-    <Description>Set of classes and extensions methods that allow you to send/receive UPD packets with ease. It handles corruption checks, concatenation, fragmentation, serialization and adds compression.</Description>
+    <Description>Set of classes and extensions methods that allow you to send/receive UDP packets with ease. It handles corruption checks, concatenation, fragmentation, serialization and adds compression.</Description>
     <Copyright>Copyright © 2024 NetworkDLS</Copyright>
     <PackageProjectUrl>https://github.com/NTDLS/NTDLS.UDPPacketFraming</PackageProjectUrl>
     <RepositoryUrl>https://github.com/NTDLS/NTDLS.UDPPacketFraming</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageReleaseNotes>
-      Package rename.
+      Added convention based message handling.
     </PackageReleaseNotes>
-    <AssemblyVersion>1.2.0</AssemblyVersion>
-    <FileVersion>1.2.0</FileVersion>
-    <VersionPrefix>1.2.0</VersionPrefix>
+    <AssemblyVersion>1.3.0</AssemblyVersion>
+    <FileVersion>1.3.0</FileVersion>
+    <VersionPrefix>1.3.0</VersionPrefix>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageTags>UPD;framing;network;io;datagram</PackageTags>
+    <PackageTags>UDP;framing;network;io;datagram</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>

@@ -3,28 +3,52 @@
 📦 Be sure to check out the NuGet pacakge: https://www.nuget.org/packages/NTDLS.DatagramMessaging
 
 NTDLS.DatagramMessaging is a set of classes and extensions methods that allow you to send/receive
-UPD packets with ease. It handles corruption checks, concatenation, fragmentation, serialization
+UDP packets with ease. It handles corruption checks, concatenation, fragmentation, serialization
 and adds compression.
 
-## UPD Sever:
+## UDP Sever (Event based):
 > Here we are instantiating a DmMessenger and giving it a listen port. This will cause the
-> manager to go into listen mode and pass any received frames to the supplied callback.
+> manager to go into listen mode. Any received messages will handled by the OnNotificationReceived event.
 ```csharp
 static void Main()
 {
-    var dmMessenger = new DmMessenger(1234, ProcessFrameNotificationCallback);
+    var udpManager = new DmMessenger(1234);
+
+    udpManager.OnNotificationReceived += UdpManager_OnNotificationReceived;
 }
 
-private static void ProcessFrameNotificationCallback(IDmNotification payload)
+private static void UdpManager_OnNotificationReceived(DmContext context, IDmNotification payload)
 {
-    if (payload is MyFirstUPDPacket myFirstUPDPacket)
+    if (payload is MyFirstUDPPacket myFirstUDPPacket)
     {
-        Console.WriteLine($"{myFirstUPDPacket.Message}->{myFirstUPDPacket.UID}->{myFirstUPDPacket.TimeStamp}");
+        Console.WriteLine($"{myFirstUDPPacket.Message}->{myFirstUDPPacket.UID}->{myFirstUDPPacket.TimeStamp}");
     }
 }
 ```
 
-## UPD Client:
+## UDP Sever (Convention based):
+> Here we are instantiating a DmMessenger and giving it a listen port. This will cause the
+> manager to go into listen mode. Any received messages will handled by the class HandlePackets
+> which was suppled to the UDP messenger by a call to AddHandler().
+```csharp
+    static void Main()
+    {
+        var udpManager = new DmMessenger(1234);
+
+        udpManager.AddHandler(new HandlePackets());
+    }
+
+    private class HandlePackets : IDmMessageHandler
+    {
+        public static void ProcessFrameNotificationCallback(DmContext context, MyFirstUDPPacket payload)
+        {
+            Console.WriteLine($"{payload.Message}->{payload.UID}->{payload.TimeStamp}");
+        }
+    }
+}
+```
+
+## UDP Client:
 > Here we are instantiating a DmMessenger without a a listen port. This means that this this
 > manager is in write-only mode. We are going to loop and send frames containing serialized MyFirstUDPPacket.
 ```csharp
@@ -37,7 +61,7 @@ static void Main()
     while (true)
     {
         dmMessenger.WriteMessage("127.0.0.1", 1234,
-            new MyFirstUPDPacket($"Packet#:{packetNumber++} "));
+            new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
 
         Thread.Sleep(100);
     }
@@ -48,17 +72,17 @@ static void Main()
 > The class that we are going to be serializing and deserializing in the examples.
 
 ```csharp
-public class MyFirstUPDPacket: IDmNotification
+public class MyFirstUDPPacket: IDmNotification
 {
     public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
     public Guid UID { get; set; } = Guid.NewGuid();
     public string Message { get; set; } = string.Empty;
 
-    public MyFirstUPDPacket()
+    public MyFirstUDPPacket()
     {
     }
 
-    public MyFirstUPDPacket(string message)
+    public MyFirstUDPPacket(string message)
     {
         Message = message;
     }

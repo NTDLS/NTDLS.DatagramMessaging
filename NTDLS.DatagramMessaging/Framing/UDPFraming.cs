@@ -1,4 +1,4 @@
-﻿using NTDLS.DatagramMessaging.Payloads;
+﻿using NTDLS.DatagramMessaging.Internal;
 using NTDLS.Semaphore;
 using System;
 using System.Collections.Generic;
@@ -29,7 +29,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <summary>
         /// Waits on bytes to become available, reads those bytes then parses the available frames (if any) and calls the appropriate callbacks.
         /// </summary>
-        /// <param name="udpClient">The UPD client to receive daata from.</param>
+        /// <param name="udpClient">The UDP client to receive daata from.</param>
         /// <param name="frameBuffer">The frame buffer that will be used to receive bytes.</param>
         /// <param name="processNotificationCallback">Optional callback to call when a notification frame is received.</param>
         /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>

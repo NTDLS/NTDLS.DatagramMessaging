@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Package", "Package", "{4E8E
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PacketFraming.TestHarness.ServerByConvention", "PacketFraming.TestHarness.ServerByConvention\PacketFraming.TestHarness.ServerByConvention.csproj", "{80BBF7E5-A19E-46DB-8485-36C5D25BF9AB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{BA32058D-1BF5-4A82-B76C-7818E0FD4E7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA32058D-1BF5-4A82-B76C-7818E0FD4E7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA32058D-1BF5-4A82-B76C-7818E0FD4E7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80BBF7E5-A19E-46DB-8485-36C5D25BF9AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80BBF7E5-A19E-46DB-8485-36C5D25BF9AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80BBF7E5-A19E-46DB-8485-36C5D25BF9AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80BBF7E5-A19E-46DB-8485-36C5D25BF9AB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -49,6 +55,7 @@ Global
 		{668256B3-08F4-4982-BBB4-639B1A0EEFCB} = {3A3E0A23-8C28-4B79-8300-8599BE2565E0}
 		{5EDFAD64-9379-461E-8A20-B24DD38D684B} = {3A3E0A23-8C28-4B79-8300-8599BE2565E0}
 		{BA32058D-1BF5-4A82-B76C-7818E0FD4E7D} = {3A3E0A23-8C28-4B79-8300-8599BE2565E0}
+		{80BBF7E5-A19E-46DB-8485-36C5D25BF9AB} = {3A3E0A23-8C28-4B79-8300-8599BE2565E0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {57454B9D-E3FB-4318-AE39-73B6071F8C1D}

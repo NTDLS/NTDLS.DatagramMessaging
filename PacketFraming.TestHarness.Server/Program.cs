@@ -7,14 +7,16 @@ namespace PacketFraming.TestHarness.Server
     {
         static void Main()
         {
-            var udpManager = new DmMessenger(1234, ProcessFrameNotificationCallback);
+            var udpManager = new DmMessenger(1234);
+
+            udpManager.OnNotificationReceived += UdpManager_OnNotificationReceived;
         }
 
-        private static void ProcessFrameNotificationCallback(IDmNotification payload)
+        private static void UdpManager_OnNotificationReceived(DmContext context, IDmNotification payload)
         {
-            if (payload is MyFirstUPDPacket myFirstUPDPacket)
+            if (payload is MyFirstUDPPacket myFirstUDPPacket)
             {
-                Console.WriteLine($"{myFirstUPDPacket.Message}->{myFirstUPDPacket.UID}->{myFirstUPDPacket.TimeStamp}");
+                Console.WriteLine($"{myFirstUDPPacket.Message}->{myFirstUDPPacket.UID}->{myFirstUDPPacket.TimeStamp}");
             }
         }
     }

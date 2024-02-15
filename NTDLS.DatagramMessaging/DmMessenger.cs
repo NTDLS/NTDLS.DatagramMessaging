@@ -1,4 +1,5 @@
 ﻿using NTDLS.DatagramMessaging.Framing;
+using NTDLS.DatagramMessaging.Internal;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -8,7 +9,7 @@ using static NTDLS.DatagramMessaging.Framing.UDPFraming;
 namespace NTDLS.DatagramMessaging
 {
     /// <summary>
-    /// Wrapper for UdpClient. Set of classes and extensions methods that allow you to send/receive UPD packets with ease.
+    /// Wrapper for UdpClient. Set of classes and extensions methods that allow you to send/receive UDP packets with ease.
     /// </summary>
     public class DmMessenger
     {
@@ -16,24 +17,55 @@ namespace NTDLS.DatagramMessaging
         private bool _keepRunning = false;
         private Thread? _receiveThread = null;
 
+        #region Events.
+
+        /// <summary>
+        /// Event fired when a notification is received from a client.
+        /// </summary>
+        public event NotificationReceivedEvent? OnNotificationReceived;
+        /// <summary>
+        /// Event fired when a notification is received from a client.
+        /// </summary>
+        /// <param name="context">Information about the connection.</param>
+        /// <param name="payload"></param>
+        public delegate void NotificationReceivedEvent(DmContext context, IDmNotification payload);
+
+        #endregion
+
         /// <summary>
         /// Underlying native UDP client.
         /// </summary>
         public UdpClient? Client { get; set; }
 
         /// <summary>
-        /// Starts a new managed UPD "connection" that can send and receive.
+        /// Cache of class instances and method reflection information for message handlers.
+        /// </summary>
+        public ReflectionCache ReflectionCache { get; private set; } = new();
+
+        /// <summary>
+        /// Starts a new managed UDP "connection" that can send and receive. You must also call AddHandler() or hook the OnNotificationReceivedevent  so that messages can be handled.
         /// </summary>
         /// <param name="listenPort"></param>
-        /// <param name="processNotificationCallback"></param>
-        public DmMessenger(int listenPort, ProcessFrameNotificationCallback processNotificationCallback)
+        public DmMessenger(int listenPort)
         {
             Client = new UdpClient(listenPort);
-            ListenAsync(listenPort, processNotificationCallback);
+            ListenAsync(listenPort);
         }
 
         /// <summary>
-        /// Starts a new managed UPD handler that can send only.
+        /// Starts a new managed UDP "connection" that can send and receive, with a default handler.
+        /// </summary>
+        /// <param name="listenPort"></param>
+        /// <param name="handlerClass"></param>
+        public DmMessenger(int listenPort, IDmMessageHandler handlerClass)
+        {
+            Client = new UdpClient(listenPort);
+            AddHandler(handlerClass);
+            ListenAsync(listenPort);
+        }
+
+        /// <summary>
+        /// Starts a new managed UDP handler that can send only.
         /// </summary>
         public DmMessenger()
         {
@@ -50,6 +82,15 @@ namespace NTDLS.DatagramMessaging
 
             Client = null;
 
+        }
+
+        /// <summary>
+        /// Adds a class that contains notification and query handler functions.
+        /// </summary>
+        /// <param name="handlerClass"></param>
+        public void AddHandler(IDmMessageHandler handlerClass)
+        {
+            ReflectionCache.AddInstance(handlerClass);
         }
 
         /// <summary>
@@ -181,7 +222,7 @@ namespace NTDLS.DatagramMessaging
             Client.WriteBytesFrame(endpoint, payload);
         }
 
-        private void ListenAsync(int listenPort, ProcessFrameNotificationCallback processNotificationCallback)
+        private void ListenAsync(int listenPort)
         {
             if (Client == null)
             {
@@ -195,11 +236,14 @@ namespace NTDLS.DatagramMessaging
 
             _receiveThread = new Thread(o =>
             {
+                var context = new DmContext(this, Client, Thread.CurrentThread);
+
                 while (_keepRunning)
                 {
                     try
                     {
-                        while (_keepRunning && Client.ReadAndProcessFrames(ref clientEndPoint, frameBuffer, processNotificationCallback))
+                        while (_keepRunning && Client.ReadAndProcessFrames(ref clientEndPoint, frameBuffer,
+                            (payload) => LocalProcessFrameNotificationByConvention(context, payload)))
                         {
                         }
                     }
@@ -208,6 +252,21 @@ namespace NTDLS.DatagramMessaging
             });
 
             _receiveThread.Start();
+
+            void LocalProcessFrameNotificationByConvention(DmContext context, IDmNotification payload)
+            {
+                //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnNotificationReceived() event.
+                if (ReflectionCache.GetCachedMethod(payload.GetType(), out var cachedMethod))
+                {
+                    if (ReflectionCache.GetCachedInstance(cachedMethod, out var cachedInstance))
+                    {
+                        cachedMethod.Invoke(cachedInstance, new object[] { context, payload });
+                        return;
+                    }
+                }
+
+                OnNotificationReceived?.Invoke(context, payload);
+            }
         }
     }
 }

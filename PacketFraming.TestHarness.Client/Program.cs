@@ -14,7 +14,7 @@ namespace PacketFraming.TestHarness.Client
             while (true)
             {
                 udpManager.WriteMessage("127.0.0.1", 1234,
-                    new MyFirstUPDPacket($"Packet#:{packetNumber++} "));
+                    new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
 
                 Thread.Sleep(100);
             }

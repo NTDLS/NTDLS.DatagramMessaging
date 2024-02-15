@@ -2,17 +2,17 @@
 
 namespace PacketFraming.TestHarness.Shared
 {
-    public class MyFirstUPDPacket : IDmNotification
+    public class MyFirstUDPPacket : IDmNotification
     {
         public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
         public Guid UID { get; set; } = Guid.NewGuid();
         public string Message { get; set; } = string.Empty;
 
-        public MyFirstUPDPacket()
+        public MyFirstUDPPacket()
         {
         }
 
-        public MyFirstUPDPacket(string message)
+        public MyFirstUDPPacket(string message)
         {
             Message = message;
         }
