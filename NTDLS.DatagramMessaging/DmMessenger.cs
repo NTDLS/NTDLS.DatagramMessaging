@@ -260,7 +260,15 @@ namespace NTDLS.DatagramMessaging
                 {
                     if (ReflectionCache.GetCachedInstance(cachedMethod, out var cachedInstance))
                     {
-                        cachedMethod.Invoke(cachedInstance, new object[] { context, payload });
+                        switch (cachedMethod.MethodType)
+                        {
+                            case ReflectionCache.CachedMethodType.PayloadOnly:
+                                cachedMethod.Method.Invoke(cachedInstance, new object[] { payload });
+                                break;
+                            case ReflectionCache.CachedMethodType.PayloadWithContext:
+                                cachedMethod.Method.Invoke(cachedInstance, new object[] { context, payload });
+                                break;
+                        }
                         return;
                     }
                 }
