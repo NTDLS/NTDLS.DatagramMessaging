@@ -15,12 +15,12 @@
     <RepositoryUrl>https://github.com/NTDLS/NTDLS.UDPPacketFraming</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageReleaseNotes>
-      Added payload only delegate variants.
+      Dependency updates.
     </PackageReleaseNotes>
-    <AssemblyVersion>1.3.1</AssemblyVersion>
-    <FileVersion>1.3.1</FileVersion>
-    <VersionPrefix>1.3.1</VersionPrefix>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <AssemblyVersion>1.3.2</AssemblyVersion>
+    <FileVersion>1.3.2</FileVersion>
+    <VersionPrefix>1.3.2</VersionPrefix>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>UDP;framing;network;io;datagram</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -46,8 +46,8 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NTDLS.Semaphore" Version="3.3.0" />
-    <PackageReference Include="protobuf-net" Version="3.2.30" />
+    <PackageReference Include="NTDLS.Semaphore" Version="3.4.9" />
+    <PackageReference Include="protobuf-net" Version="3.2.45" />
   </ItemGroup>
 
   <ItemGroup>
