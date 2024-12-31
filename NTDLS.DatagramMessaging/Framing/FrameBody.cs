@@ -30,17 +30,19 @@ namespace NTDLS.DatagramMessaging.Framing
         public byte[] Bytes { get; set; } = Array.Empty<byte>();
 
         /// <summary>
-        /// Instanciates a frame payload with a serialized payload.
+        /// Instantiates a frame payload with a serialized payload.
         /// </summary>
         /// <param name="framePayload"></param>
         public FrameBody(IDmPayload framePayload)
         {
-            ObjectType = framePayload.GetType()?.AssemblyQualifiedName ?? string.Empty;
+            var assemblyQualifiedName = framePayload.GetType()?.AssemblyQualifiedName ?? string.Empty;
+            var parts = assemblyQualifiedName.Split(','); //We only want the first two parts, not the version and such.
+            ObjectType = parts.Length > 1 ? $"{parts[0]},{parts[1].Trim()}" : assemblyQualifiedName;
             Bytes = Encoding.UTF8.GetBytes(Utility.JsonSerialize(framePayload));
         }
 
         /// <summary>
-        /// Instanciates a frame payload using a raw byte array.
+        /// Instantiates a frame payload using a raw byte array.
         /// </summary>
         /// <param name="bytesPayload"></param>
         public FrameBody(byte[] bytesPayload)
@@ -50,7 +52,7 @@ namespace NTDLS.DatagramMessaging.Framing
         }
 
         /// <summary>
-        /// Instanciates a frame payload.
+        /// Instantiates a frame payload.
         /// </summary>
         public FrameBody()
         {
