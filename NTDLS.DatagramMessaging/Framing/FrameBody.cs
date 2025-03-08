@@ -1,4 +1,5 @@
-﻿using ProtoBuf;
+﻿using NTDLS.DatagramMessaging.Internal;
+using ProtoBuf;
 using System;
 using System.Text;
 using System.Text.Json;
@@ -25,7 +26,7 @@ namespace NTDLS.DatagramMessaging.Framing
         public string ObjectType { get; set; } = string.Empty;
 
         /// <summary>
-        /// Sometimes we just need to send a byte array without all the overhead of json, thats when we use BytesPayload.
+        /// Sometimes we just need to send a byte array without all the overhead of json, that's when we use BytesPayload.
         /// </summary>
         [ProtoMember(3)]
         public byte[] Bytes { get; set; } = Array.Empty<byte>();
@@ -36,9 +37,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="framePayload"></param>
         public FrameBody(IDmPayload framePayload)
         {
-            var assemblyQualifiedName = framePayload.GetType()?.AssemblyQualifiedName ?? string.Empty;
-            var parts = assemblyQualifiedName.Split(','); //We only want the first two parts, not the version and such.
-            ObjectType = parts.Length > 1 ? $"{parts[0]},{parts[1].Trim()}" : assemblyQualifiedName;
+            ObjectType = Reflection.GetAssemblyQualifiedTypeNameWithClosedGenerics(framePayload);
             Bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize((object?)framePayload));
         }
 
