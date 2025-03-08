@@ -32,6 +32,74 @@ namespace NTDLS.DatagramMessaging
 
         #endregion
 
+        #region IDmSerializationProvider.
+
+        private IDmSerializationProvider? _serializationProvider = null;
+
+        /// <summary>
+        /// Sets the custom serialization provider that this client should use when sending/receiving data. Can be cleared by passing null or calling ClearSerializationProvider().
+        /// </summary>
+        public void SetSerializationProvider(IDmSerializationProvider? provider)
+            => _serializationProvider = provider;
+
+        /// Removes the custom serialization provider set by a previous call to SetSerializationProvider().
+        public void ClearSerializationProvider()
+            => _serializationProvider = null;
+
+        /// <summary>
+        /// Gets the current custom serialization provider, if any.
+        /// </summary>
+        public IDmSerializationProvider? GetSerializationProvider()
+            => _serializationProvider;
+
+        #endregion
+
+        #region IDmCompressionProvider.
+
+        private IDmCompressionProvider? _compressionProvider = null;
+
+        /// <summary>
+        /// Sets the custom compression provider that this client should use when sending/receiving data. Can be cleared by passing null or calling ClearCompressionProvider().
+        /// </summary>
+        public void SetCompressionProvider(IDmCompressionProvider? provider)
+            => _compressionProvider = provider;
+
+        /// Removes the custom compression provider set by a previous call to SetCompressionProvider().
+        public void ClearCompressionProvider()
+            => _compressionProvider = null;
+
+        /// <summary>
+        /// Gets the current custom compression provider, if any.
+        /// </summary>
+        public IDmCompressionProvider? GetCompressionProvider()
+            => _compressionProvider;
+
+        #endregion
+
+        #region IDmCryptographyProvider.
+
+        private IDmCryptographyProvider? _cryptographyProvider = null;
+
+        /// <summary>
+        /// Sets the custom encryption provider that this client should use when sending/receiving data. Can be cleared by passing null or calling ClearCryptographyProvider().
+        /// </summary>
+        public void SetCryptographyProvider(IDmCryptographyProvider? provider)
+            => _cryptographyProvider = provider;
+
+        /// <summary>
+        /// Removes the custom encryption provider set by a previous call to SetCryptographyProvider().
+        /// </summary>
+        public void ClearCryptographyProvider()
+            => _cryptographyProvider = null;
+
+        /// <summary>
+        /// Gets the current custom cryptography provider, if any.
+        /// </summary>
+        public IDmCryptographyProvider? GetCryptographyProvider()
+            => _cryptographyProvider;
+
+        #endregion
+
         /// <summary>
         /// Underlying native UDP client.
         /// </summary>
@@ -153,7 +221,7 @@ namespace NTDLS.DatagramMessaging
         public void WriteMessage(string hostOrIPAddress, int port, IDmNotification payload)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
-            Client.WriteNotificationFrame(hostOrIPAddress, port, payload);
+            Client.WriteNotificationFrame(this, hostOrIPAddress, port, payload, _serializationProvider, _compressionProvider, _cryptographyProvider);
         }
 
         /// <summary>
@@ -166,7 +234,7 @@ namespace NTDLS.DatagramMessaging
         public void WriteMessage(IPAddress ipAddress, int port, IDmNotification payload)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
-            Client.WriteNotificationFrame(ipAddress, port, payload);
+            Client.WriteNotificationFrame(this, ipAddress, port, payload, _serializationProvider, _compressionProvider, _cryptographyProvider);
         }
 
         /// <summary>
@@ -178,7 +246,7 @@ namespace NTDLS.DatagramMessaging
         public void WriteMessage(IPEndPoint endpoint, IDmNotification payload)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
-            Client.WriteNotificationFrame(endpoint, payload);
+            Client.WriteNotificationFrame(this, endpoint, payload, _serializationProvider, _compressionProvider, _cryptographyProvider);
         }
 
         /// <summary>
@@ -191,7 +259,7 @@ namespace NTDLS.DatagramMessaging
         public void WriteBytes(string hostOrIPAddress, int port, byte[] payload)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
-            Client.WriteBytesFrame(hostOrIPAddress, port, payload);
+            Client.WriteBytesFrame(this, hostOrIPAddress, port, payload, _serializationProvider, _compressionProvider, _cryptographyProvider);
         }
 
         /// <summary>
@@ -204,7 +272,7 @@ namespace NTDLS.DatagramMessaging
         public void WriteBytes(IPAddress ipAddress, int port, byte[] payload)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
-            Client.WriteBytesFrame(ipAddress, port, payload);
+            Client.WriteBytesFrame(this, ipAddress, port, payload, _serializationProvider, _compressionProvider, _cryptographyProvider);
         }
 
         /// <summary>
@@ -216,7 +284,7 @@ namespace NTDLS.DatagramMessaging
         public void WriteBytes(IPEndPoint endpoint, byte[] payload)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
-            Client.WriteBytesFrame(endpoint, payload);
+            Client.WriteBytesFrame(this, endpoint, payload, _serializationProvider, _compressionProvider, _cryptographyProvider);
         }
 
         private void ListenAsync(int listenPort)
@@ -239,11 +307,11 @@ namespace NTDLS.DatagramMessaging
                 {
                     try
                     {
-                        while (_keepRunning && Client.ReadAndProcessFrames(ref clientEndPoint, context, frameBuffer,
+                        while (_keepRunning && Client.ReadAndProcessFrames(ref clientEndPoint, this, frameBuffer,
                             (payload) => LocalProcessFrameNotificationByConvention(context, payload),
-                                context.GetSerializationProvider,/*This is a delegate function call so that we can get the provider at the latest possible moment.*/
-                                context.GetCompressionProvider,/*This is a delegate function call so that we can get the provider at the latest possible moment.*/
-                                context.GetCryptographyProvider/*This is a delegate function call so that we can get the provider at the latest possible moment.*/))
+                                GetSerializationProvider,/*This is a delegate function call so that we can get the provider at the latest possible moment.*/
+                                GetCompressionProvider,/*This is a delegate function call so that we can get the provider at the latest possible moment.*/
+                                GetCryptographyProvider/*This is a delegate function call so that we can get the provider at the latest possible moment.*/))
                         {
                         }
                     }

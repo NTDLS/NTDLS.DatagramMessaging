@@ -1,6 +1,7 @@
 ﻿using ProtoBuf;
 using System;
 using System.Text;
+using System.Text.Json;
 
 namespace NTDLS.DatagramMessaging.Framing
 {
@@ -38,7 +39,7 @@ namespace NTDLS.DatagramMessaging.Framing
             var assemblyQualifiedName = framePayload.GetType()?.AssemblyQualifiedName ?? string.Empty;
             var parts = assemblyQualifiedName.Split(','); //We only want the first two parts, not the version and such.
             ObjectType = parts.Length > 1 ? $"{parts[0]},{parts[1].Trim()}" : assemblyQualifiedName;
-            Bytes = Encoding.UTF8.GetBytes(Utility.JsonSerialize(framePayload));
+            Bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize((object?)framePayload));
         }
 
         /// <summary>

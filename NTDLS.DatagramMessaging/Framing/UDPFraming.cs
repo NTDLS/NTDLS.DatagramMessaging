@@ -49,7 +49,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// Waits on bytes to become available, reads those bytes then parses the available frames (if any) and calls the appropriate callbacks.
         /// </summary>
         /// <param name="udpClient">The UDP client to receive data from.</param>
-        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
         /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
         /// <param name="frameBuffer">The frame buffer that will be used to receive bytes.</param>
         /// <param name="processNotificationCallback">Optional callback to call when a notification frame is received.</param>
@@ -58,7 +58,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="getEncryptionProviderCallback">An optional callback to get the callback that is called to allow for manipulation of bytes after they are received.</param>
         /// <returns>Returns true if bytes were received.</returns>
         /// <exception cref="Exception"></exception>
-        public static bool ReadAndProcessFrames(this UdpClient udpClient, ref IPEndPoint endpoint, DmContext context, FrameBuffer frameBuffer,
+        public static bool ReadAndProcessFrames(this UdpClient udpClient, ref IPEndPoint endpoint, DmMessenger messenger, FrameBuffer frameBuffer,
             ProcessFrameNotificationCallback processNotificationCallback,
             GetSerializationProviderCallback? getSerializationProviderCallback,
             GetCompressionProviderCallback? getCompressionProviderCallback,
@@ -93,7 +93,7 @@ namespace NTDLS.DatagramMessaging.Framing
                     cryptographyProvider = getEncryptionProviderCallback();
                 }
 
-                ProcessFrameBuffer(context, frameBuffer, processNotificationCallback, serializationProvider, compressionProvider, cryptographyProvider);
+                ProcessFrameBuffer(messenger, frameBuffer, processNotificationCallback, serializationProvider, compressionProvider, cryptographyProvider);
                 return true;
             }
 
@@ -104,18 +104,18 @@ namespace NTDLS.DatagramMessaging.Framing
         /// Sends a one-time fire-and-forget notification.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
         /// <param name="framePayload">The notification payload that will be sent.</param>
         /// <param name="hostOrIPAddress">Host or IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
         /// <param name="serializationProvider">An optional callback that is called to allow for custom serialization.</param>
         /// <param name="compressionProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
         /// <param name="cryptographyProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
-        public static void WriteNotificationFrame(this UdpClient udpClient, DmContext context, string hostOrIPAddress, int port, IDmNotification framePayload,
+        public static void WriteNotificationFrame(this UdpClient udpClient, DmMessenger messenger, string hostOrIPAddress, int port, IDmNotification framePayload,
             IDmSerializationProvider? serializationProvider, IDmCompressionProvider? compressionProvider, IDmCryptographyProvider? cryptographyProvider)
         {
             var frameBody = new FrameBody(framePayload);
-            var frameBytes = AssembleFrame(context, frameBody, compressionProvider, cryptographyProvider);
+            var frameBytes = AssembleFrame(messenger, frameBody, compressionProvider, cryptographyProvider);
             udpClient.Send(frameBytes, frameBytes.Length, hostOrIPAddress, port);
         }
 
@@ -123,18 +123,18 @@ namespace NTDLS.DatagramMessaging.Framing
         /// Sends a one-time fire-and-forget notification.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
         /// <param name="framePayload">The notification payload that will be sent.</param>
         /// <param name="ipAddress">IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
         /// <param name="serializationProvider">An optional callback that is called to allow for custom serialization.</param>
         /// <param name="compressionProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
         /// <param name="cryptographyProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
-        public static void WriteNotificationFrame(this UdpClient udpClient, DmContext context, IPAddress ipAddress, int port, IDmNotification framePayload,
+        public static void WriteNotificationFrame(this UdpClient udpClient, DmMessenger messenger, IPAddress ipAddress, int port, IDmNotification framePayload,
             IDmSerializationProvider? serializationProvider, IDmCompressionProvider? compressionProvider, IDmCryptographyProvider? cryptographyProvider)
         {
             var frameBody = new FrameBody(framePayload);
-            var frameBytes = AssembleFrame(context, frameBody, compressionProvider, cryptographyProvider);
+            var frameBytes = AssembleFrame(messenger, frameBody, compressionProvider, cryptographyProvider);
             udpClient.Send(frameBytes, frameBytes.Length, new IPEndPoint(ipAddress, port));
         }
 
@@ -142,17 +142,17 @@ namespace NTDLS.DatagramMessaging.Framing
         /// Sends a one-time fire-and-forget notification.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
         /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
         /// <param name="framePayload">The notification payload that will be sent.</param>
         /// <param name="serializationProvider">An optional callback that is called to allow for custom serialization.</param>
         /// <param name="compressionProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
         /// <param name="cryptographyProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
-        public static void WriteNotificationFrame(this UdpClient udpClient, DmContext context, IPEndPoint endpoint, IDmNotification framePayload,
+        public static void WriteNotificationFrame(this UdpClient udpClient, DmMessenger messenger, IPEndPoint endpoint, IDmNotification framePayload,
             IDmSerializationProvider? serializationProvider, IDmCompressionProvider? compressionProvider, IDmCryptographyProvider? cryptographyProvider)
         {
             var frameBody = new FrameBody(framePayload);
-            var frameBytes = AssembleFrame(context, frameBody, compressionProvider, cryptographyProvider);
+            var frameBytes = AssembleFrame(messenger, frameBody, compressionProvider, cryptographyProvider);
             udpClient.Send(frameBytes, frameBytes.Length, endpoint);
         }
 
@@ -161,14 +161,14 @@ namespace NTDLS.DatagramMessaging.Framing
         /// When a raw byte array is use, all json serialization is skipped and checks for this payload type are prioritized for performance.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
         /// <param name="framePayload">The bytes will make up the body of the frame which is written.</param>
         /// <param name="hostOrIPAddress">Host or IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
         /// <param name="serializationProvider">An optional callback that is called to allow for custom serialization.</param>
         /// <param name="compressionProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
         /// <param name="cryptographyProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
-        public static void WriteBytesFrame(this UdpClient udpClient, DmContext context, string hostOrIPAddress, int port, byte[] framePayload,
+        public static void WriteBytesFrame(this UdpClient udpClient, DmMessenger messenger, string hostOrIPAddress, int port, byte[] framePayload,
             IDmSerializationProvider? serializationProvider, IDmCompressionProvider? compressionProvider, IDmCryptographyProvider? cryptographyProvider)
         {
             if (udpClient == null)
@@ -177,7 +177,7 @@ namespace NTDLS.DatagramMessaging.Framing
             }
 
             var frameBody = new FrameBody(framePayload);
-            var frameBytes = AssembleFrame(context, frameBody, compressionProvider, cryptographyProvider);
+            var frameBytes = AssembleFrame(messenger, frameBody, compressionProvider, cryptographyProvider);
             udpClient.Send(frameBytes, frameBytes.Length, hostOrIPAddress, port);
         }
 
@@ -186,14 +186,14 @@ namespace NTDLS.DatagramMessaging.Framing
         /// When a raw byte array is use, all json serialization is skipped and checks for this payload type are prioritized for performance.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
         /// <param name="framePayload">The bytes will make up the body of the frame which is written.</param>
         /// <param name="ipAddress">IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
         /// <param name="serializationProvider">An optional callback that is called to allow for custom serialization.</param>
         /// <param name="compressionProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
         /// <param name="cryptographyProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
-        public static void WriteBytesFrame(this UdpClient udpClient, DmContext context, IPAddress ipAddress, int port, byte[] framePayload,
+        public static void WriteBytesFrame(this UdpClient udpClient, DmMessenger messenger, IPAddress ipAddress, int port, byte[] framePayload,
             IDmSerializationProvider? serializationProvider, IDmCompressionProvider? compressionProvider, IDmCryptographyProvider? cryptographyProvider)
         {
             if (udpClient == null)
@@ -202,7 +202,7 @@ namespace NTDLS.DatagramMessaging.Framing
             }
 
             var frameBody = new FrameBody(framePayload);
-            var frameBytes = AssembleFrame(context, frameBody, compressionProvider, cryptographyProvider);
+            var frameBytes = AssembleFrame(messenger, frameBody, compressionProvider, cryptographyProvider);
             udpClient.Send(frameBytes, frameBytes.Length, new IPEndPoint(ipAddress, port));
         }
 
@@ -211,13 +211,13 @@ namespace NTDLS.DatagramMessaging.Framing
         /// When a raw byte array is use, all json serialization is skipped and checks for this payload type are prioritized for performance.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
         /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
         /// <param name="framePayload">The bytes will make up the body of the frame which is written.</param>
         /// <param name="serializationProvider">An optional callback that is called to allow for custom serialization.</param>
         /// <param name="compressionProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
         /// <param name="cryptographyProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
-        public static void WriteBytesFrame(this UdpClient udpClient, DmContext context, IPEndPoint endpoint, byte[] framePayload,
+        public static void WriteBytesFrame(this UdpClient udpClient, DmMessenger messenger, IPEndPoint endpoint, byte[] framePayload,
             IDmSerializationProvider? serializationProvider, IDmCompressionProvider? compressionProvider, IDmCryptographyProvider? cryptographyProvider)
         {
             if (udpClient == null)
@@ -226,22 +226,22 @@ namespace NTDLS.DatagramMessaging.Framing
             }
 
             var frameBody = new FrameBody(framePayload);
-            var frameBytes = AssembleFrame(context, frameBody, compressionProvider, cryptographyProvider);
+            var frameBytes = AssembleFrame(messenger, frameBody, compressionProvider, cryptographyProvider);
             udpClient.Send(frameBytes, frameBytes.Length, endpoint);
         }
 
         #endregion
 
-        private static byte[] AssembleFrame(DmContext context, FrameBody frameBody,
+        private static byte[] AssembleFrame(DmMessenger messenger, FrameBody frameBody,
             IDmCompressionProvider? compressionProvider, IDmCryptographyProvider? cryptographyProvider)
         {
             var frameBodyBytes = Serialization.SerializeToByteArray(frameBody);
 
-            var compressedFrameBodyBytes = compressionProvider?.Compress(context, frameBodyBytes) ?? Compression.Compress(frameBodyBytes);
+            var compressedFrameBodyBytes = compressionProvider?.Compress(messenger, frameBodyBytes) ?? Compression.Compress(frameBodyBytes);
 
             if (cryptographyProvider != null)
             {
-                compressedFrameBodyBytes = cryptographyProvider.Encrypt(context, compressedFrameBodyBytes);
+                compressedFrameBodyBytes = cryptographyProvider.Encrypt(messenger, compressedFrameBodyBytes);
             }
 
             var grossFrameSize = compressedFrameBodyBytes.Length + NtFrameDefaults.FRAME_HEADER_SIZE;
@@ -277,7 +277,7 @@ namespace NTDLS.DatagramMessaging.Framing
             frameBuffer.FrameBuilderLength = 0;
         }
 
-        private static void ProcessFrameBuffer(DmContext context, FrameBuffer frameBuffer,
+        private static void ProcessFrameBuffer(DmMessenger messenger, FrameBuffer frameBuffer,
             ProcessFrameNotificationCallback processNotificationCallback,
             IDmSerializationProvider? serializationProvider,
             IDmCompressionProvider? compressionProvider,
@@ -331,7 +331,7 @@ namespace NTDLS.DatagramMessaging.Framing
                 var compressedFrameBodyBytes = new byte[netFrameSize];
                 Buffer.BlockCopy(frameBuffer.FrameBuilder, NtFrameDefaults.FRAME_HEADER_SIZE, compressedFrameBodyBytes, 0, netFrameSize);
 
-                var FrameBodyBytes = compressionProvider?.DeCompress(context, compressedFrameBodyBytes) ?? Compression.Decompress(compressedFrameBodyBytes);
+                var FrameBodyBytes = compressionProvider?.Decompress(messenger, compressedFrameBodyBytes) ?? Compression.Decompress(compressedFrameBodyBytes);
 
                 var frameBody = Serialization.DeserializeToObject<FrameBody>(FrameBodyBytes);
 

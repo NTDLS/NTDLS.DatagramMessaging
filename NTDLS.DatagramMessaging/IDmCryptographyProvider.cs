@@ -8,17 +8,17 @@
         /// <summary>
         /// Encrypt the frame payload before it is sent.
         /// </summary>
-        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
         /// <param name="payload">Contains the raw unencrypted data.</param>
         /// <returns>Return the altered bytes.</returns>
-        public byte[] Encrypt(DmContext context, byte[] payload);
+        public byte[] Encrypt(DmMessenger messenger, byte[] payload);
 
         /// <summary>
         /// Decrypt the frame payload after it is received.
         /// </summary>
-        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
         /// <param name="encryptedPayload">Contains the encrypted data.</param>
         /// <returns>Return the altered bytes.</returns>
-        public byte[] Decrypt(DmContext context, byte[] encryptedPayload);
+        public byte[] Decrypt(DmMessenger messenger, byte[] encryptedPayload);
     }
 }

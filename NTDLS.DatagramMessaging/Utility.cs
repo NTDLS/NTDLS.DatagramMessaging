@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using ProtoBuf;
+﻿using ProtoBuf;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -10,11 +9,6 @@ namespace NTDLS.DatagramMessaging
 {
     internal static class Utility
     {
-        private static readonly JsonSerializerSettings _jsonSettings = new()
-        {
-            TypeNameHandling = TypeNameHandling.All
-        };
-
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static string GetCurrentMethod()
         {
@@ -104,12 +98,6 @@ namespace NTDLS.DatagramMessaging
             Serializer.Serialize(stream, obj);
             return stream.ToArray();
         }
-
-        public static string JsonSerialize<T>(T obj)
-            => JsonConvert.SerializeObject(obj, _jsonSettings);
-
-        public static T? JsonDeserializeToObject<T>(string json)
-            => JsonConvert.DeserializeObject<T>(json, _jsonSettings);
 
         public static T DeserializeToObject<T>(byte[] arrBytes)
         {
