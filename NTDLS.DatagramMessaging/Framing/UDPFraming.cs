@@ -26,21 +26,17 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <summary>
         /// Callback to get the callback that is called to allow for manipulation of bytes before/after they are sent/received.
         /// </summary>
-        /// <returns></returns>
         public delegate IDmCryptographyProvider? GetEncryptionProviderCallback();
 
         /// <summary>
         /// Callback to get the callback that is called to allow for manipulation of bytes before/after they are sent/received.
         /// </summary>
-        /// <returns></returns>
         public delegate IDmCompressionProvider? GetCompressionProviderCallback();
 
         /// <summary>
         /// Callback to get the callback that is called to allow for custom serialization.
         /// </summary>
-        /// <returns></returns>
         public delegate IDmSerializationProvider? GetSerializationProviderCallback();
-
 
         private static readonly PessimisticCriticalResource<Dictionary<string, MethodInfo>> _reflectionCache = new();
 
@@ -58,8 +54,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="getCompressionProviderCallback">An optional callback to get the callback that is called to allow for manipulation of bytes after they are received.</param>/// 
         /// <param name="getEncryptionProviderCallback">An optional callback to get the callback that is called to allow for manipulation of bytes after they are received.</param>
         /// <returns>Returns true if bytes were received.</returns>
-        /// <exception cref="Exception"></exception>
-        public static bool ReadAndProcessFrames(this UdpClient udpClient, ref IPEndPoint endpoint, DmMessenger messenger, FrameBuffer frameBuffer,
+        public static bool ReadAndProcessFrames(this UdpClient udpClient, ref IPEndPoint endpoint, DatagramMessenger messenger, FrameBuffer frameBuffer,
             ProcessFrameNotificationCallback processNotificationCallback,
             GetSerializationProviderCallback? getSerializationProviderCallback,
             GetCompressionProviderCallback? getCompressionProviderCallback,
@@ -112,10 +107,10 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="serializationProvider">An optional callback that is called to allow for custom serialization.</param>
         /// <param name="compressionProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
         /// <param name="cryptographyProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
-        public static void WriteNotificationFrame(this UdpClient udpClient, DmMessenger messenger, string hostOrIPAddress, int port, IDmNotification framePayload,
+        public static void WriteNotificationFrame(this UdpClient udpClient, DatagramMessenger messenger, string hostOrIPAddress, int port, IDmNotification framePayload,
             IDmSerializationProvider? serializationProvider, IDmCompressionProvider? compressionProvider, IDmCryptographyProvider? cryptographyProvider)
         {
-            var frameBody = new FrameBody(framePayload);
+            var frameBody = new FrameBody(serializationProvider, framePayload);
             var frameBytes = AssembleFrame(messenger, frameBody, compressionProvider, cryptographyProvider);
             udpClient.Send(frameBytes, frameBytes.Length, hostOrIPAddress, port);
         }
@@ -131,10 +126,10 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="serializationProvider">An optional callback that is called to allow for custom serialization.</param>
         /// <param name="compressionProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
         /// <param name="cryptographyProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
-        public static void WriteNotificationFrame(this UdpClient udpClient, DmMessenger messenger, IPAddress ipAddress, int port, IDmNotification framePayload,
+        public static void WriteNotificationFrame(this UdpClient udpClient, DatagramMessenger messenger, IPAddress ipAddress, int port, IDmNotification framePayload,
             IDmSerializationProvider? serializationProvider, IDmCompressionProvider? compressionProvider, IDmCryptographyProvider? cryptographyProvider)
         {
-            var frameBody = new FrameBody(framePayload);
+            var frameBody = new FrameBody(serializationProvider, framePayload);
             var frameBytes = AssembleFrame(messenger, frameBody, compressionProvider, cryptographyProvider);
             udpClient.Send(frameBytes, frameBytes.Length, new IPEndPoint(ipAddress, port));
         }
@@ -149,10 +144,10 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="serializationProvider">An optional callback that is called to allow for custom serialization.</param>
         /// <param name="compressionProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
         /// <param name="cryptographyProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
-        public static void WriteNotificationFrame(this UdpClient udpClient, DmMessenger messenger, IPEndPoint endpoint, IDmNotification framePayload,
+        public static void WriteNotificationFrame(this UdpClient udpClient, DatagramMessenger messenger, IPEndPoint endpoint, IDmNotification framePayload,
             IDmSerializationProvider? serializationProvider, IDmCompressionProvider? compressionProvider, IDmCryptographyProvider? cryptographyProvider)
         {
-            var frameBody = new FrameBody(framePayload);
+            var frameBody = new FrameBody(serializationProvider, framePayload);
             var frameBytes = AssembleFrame(messenger, frameBody, compressionProvider, cryptographyProvider);
             udpClient.Send(frameBytes, frameBytes.Length, endpoint);
         }
@@ -169,7 +164,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="serializationProvider">An optional callback that is called to allow for custom serialization.</param>
         /// <param name="compressionProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
         /// <param name="cryptographyProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
-        public static void WriteBytesFrame(this UdpClient udpClient, DmMessenger messenger, string hostOrIPAddress, int port, byte[] framePayload,
+        public static void WriteBytesFrame(this UdpClient udpClient, DatagramMessenger messenger, string hostOrIPAddress, int port, byte[] framePayload,
             IDmSerializationProvider? serializationProvider, IDmCompressionProvider? compressionProvider, IDmCryptographyProvider? cryptographyProvider)
         {
             if (udpClient == null)
@@ -194,7 +189,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="serializationProvider">An optional callback that is called to allow for custom serialization.</param>
         /// <param name="compressionProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
         /// <param name="cryptographyProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
-        public static void WriteBytesFrame(this UdpClient udpClient, DmMessenger messenger, IPAddress ipAddress, int port, byte[] framePayload,
+        public static void WriteBytesFrame(this UdpClient udpClient, DatagramMessenger messenger, IPAddress ipAddress, int port, byte[] framePayload,
             IDmSerializationProvider? serializationProvider, IDmCompressionProvider? compressionProvider, IDmCryptographyProvider? cryptographyProvider)
         {
             if (udpClient == null)
@@ -218,7 +213,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="serializationProvider">An optional callback that is called to allow for custom serialization.</param>
         /// <param name="compressionProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
         /// <param name="cryptographyProvider">An optional callback that is called to allow for manipulation of bytes before they are framed.</param>
-        public static void WriteBytesFrame(this UdpClient udpClient, DmMessenger messenger, IPEndPoint endpoint, byte[] framePayload,
+        public static void WriteBytesFrame(this UdpClient udpClient, DatagramMessenger messenger, IPEndPoint endpoint, byte[] framePayload,
             IDmSerializationProvider? serializationProvider, IDmCompressionProvider? compressionProvider, IDmCryptographyProvider? cryptographyProvider)
         {
             if (udpClient == null)
@@ -233,7 +228,7 @@ namespace NTDLS.DatagramMessaging.Framing
 
         #endregion
 
-        private static byte[] AssembleFrame(DmMessenger messenger, FrameBody frameBody,
+        private static byte[] AssembleFrame(DatagramMessenger messenger, FrameBody frameBody,
             IDmCompressionProvider? compressionProvider, IDmCryptographyProvider? cryptographyProvider)
         {
             var frameBodyBytes = Serialization.SerializeToByteArray(frameBody);
@@ -278,7 +273,7 @@ namespace NTDLS.DatagramMessaging.Framing
             frameBuffer.FrameBuilderLength = 0;
         }
 
-        private static void ProcessFrameBuffer(DmMessenger messenger, FrameBuffer frameBuffer,
+        private static void ProcessFrameBuffer(DatagramMessenger messenger, FrameBuffer frameBuffer,
             ProcessFrameNotificationCallback processNotificationCallback,
             IDmSerializationProvider? serializationProvider,
             IDmCompressionProvider? compressionProvider,
@@ -344,7 +339,7 @@ namespace NTDLS.DatagramMessaging.Framing
 
                 var framePayload = ExtractFramePayload(serializationProvider, frameBody);
 
-                if (framePayload is UDPFramePayloadBytes frameNotificationBytes)
+                if (framePayload is DmNotificationBytes frameNotificationBytes)
                 {
                     if (messenger.AsynchronousNotifications)
                     {
@@ -391,7 +386,7 @@ namespace NTDLS.DatagramMessaging.Framing
         {
             if (frame.ObjectType == "byte[]")
             {
-                return new UDPFramePayloadBytes(frame.Bytes);
+                return new DmNotificationBytes(frame.Bytes);
             }
 
             string cacheKey = $"{frame.ObjectType}";
@@ -405,7 +400,7 @@ namespace NTDLS.DatagramMessaging.Framing
                 return null;
             });
 
-            string json = Encoding.UTF8.GetString(frame.Bytes);
+            var json = Encoding.UTF8.GetString(frame.Bytes);
 
             if (genericToObjectMethod != null)
             {

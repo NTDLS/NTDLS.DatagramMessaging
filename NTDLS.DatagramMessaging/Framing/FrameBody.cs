@@ -2,7 +2,6 @@
 using ProtoBuf;
 using System;
 using System.Text;
-using System.Text.Json;
 
 namespace NTDLS.DatagramMessaging.Framing
 {
@@ -28,17 +27,15 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <summary>
         /// Instantiates a frame payload with a serialized payload.
         /// </summary>
-        /// <param name="framePayload"></param>
-        public FrameBody(IDmPayload framePayload)
+        public FrameBody(IDmSerializationProvider? serializationProvider, IDmPayload framePayload)
         {
             ObjectType = Reflection.GetAssemblyQualifiedTypeNameWithClosedGenerics(framePayload);
-            Bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize((object?)framePayload));
+            Bytes = Encoding.UTF8.GetBytes(Serialization.RmSerializeFramePayloadToText(serializationProvider, framePayload));
         }
 
         /// <summary>
         /// Instantiates a frame payload using a raw byte array.
         /// </summary>
-        /// <param name="bytesPayload"></param>
         public FrameBody(byte[] bytesPayload)
         {
             ObjectType = "byte[]";

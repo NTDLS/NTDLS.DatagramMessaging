@@ -11,7 +11,7 @@
         /// <param name="messenger">Contains information about the endpoint and the connection.</param>
         /// <param name="payload">Contains the raw unencrypted data.</param>
         /// <returns>Return the altered bytes.</returns>
-        public byte[] Encrypt(DmMessenger messenger, byte[] payload);
+        public byte[] Encrypt(DatagramMessenger messenger, byte[] payload);
 
         /// <summary>
         /// Decrypt the frame payload after it is received.
@@ -19,6 +19,6 @@
         /// <param name="messenger">Contains information about the endpoint and the connection.</param>
         /// <param name="encryptedPayload">Contains the encrypted data.</param>
         /// <returns>Return the altered bytes.</returns>
-        public byte[] Decrypt(DmMessenger messenger, byte[] encryptedPayload);
+        public byte[] Decrypt(DatagramMessenger messenger, byte[] encryptedPayload);
     }
 }

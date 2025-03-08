@@ -1,19 +1,24 @@
 ﻿using NTDLS.DatagramMessaging;
 using PacketFraming.TestHarness.Shared;
 
-namespace PacketFraming.TestHarness.Server
+namespace PacketFraming.TestHarness.ServerByConvention
 {
     internal class Program
     {
         static void Main()
         {
-            var udpManager = new DmMessenger(1234);
+            var dm = new DatagramMessenger(1234);
 
-            udpManager.AddHandler(new HandlePackets());
+            dm.AddHandler(new HandlePackets());
         }
 
         private class HandlePackets : IDmMessageHandler
         {
+            public static void ProcessFrameNotificationCallback(DmContext context, DmNotificationBytes bytes)
+            {
+                Console.WriteLine($"Received {bytes.Bytes.Length} bytes.");
+            }
+
             public static void ProcessFrameNotificationCallback(DmContext context, MyFirstUDPPacket payload)
             {
                 Console.WriteLine($"{payload.Message}->{payload.UID}->{payload.TimeStamp}");

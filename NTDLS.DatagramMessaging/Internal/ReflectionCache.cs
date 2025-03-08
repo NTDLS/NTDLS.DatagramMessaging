@@ -1,6 +1,8 @@
-﻿using System;
+﻿using NTDLS.DatagramMessaging.Framing;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
 
 namespace NTDLS.DatagramMessaging.Internal
@@ -13,14 +15,14 @@ namespace NTDLS.DatagramMessaging.Internal
         /// <summary>
         /// Determines the type of method which will be executed.
         /// </summary>
-        public enum CachedMethodType
+        internal enum CachedMethodType
         {
             /// <summary>
-            /// The method has only a payload parameter.
+            /// The hander function has only a payload parameter.
             /// </summary>
             PayloadOnly,
             /// <summary>
-            /// The method has both a context and a payload parameter.
+            /// The hander function has both a context and a payload parameter.
             /// </summary>
             PayloadWithContext
         }
@@ -28,7 +30,7 @@ namespace NTDLS.DatagramMessaging.Internal
         /// <summary>
         /// An instance of a cached method.
         /// </summary>
-        public class CachedMethod
+        internal class CachedMethod
         {
             /// <summary>
             /// The reflection instance of the cached method.
@@ -43,8 +45,6 @@ namespace NTDLS.DatagramMessaging.Internal
             /// <summary>
             /// Creates a new instance of the CachedMethod class.
             /// </summary>
-            /// <param name="methodType"></param>
-            /// <param name="method"></param>
             public CachedMethod(CachedMethodType methodType, MethodInfo method)
             {
                 MethodType = methodType;
@@ -52,43 +52,104 @@ namespace NTDLS.DatagramMessaging.Internal
             }
         }
 
-        private readonly Dictionary<Type, CachedMethod> _methodCache = new();
-        private readonly Dictionary<Type, IDmMessageHandler> _instanceCache = new();
+        private readonly Dictionary<string, CachedMethod> _handlerMethods = new();
+        private readonly Dictionary<Type, IDmMessageHandler> _handlerInstances = new();
 
-        internal void AddInstance(IDmMessageHandler handlerClass)
+        internal void AddInstance(IDmMessageHandler handler)
         {
-            _instanceCache.Add(handlerClass.GetType(), handlerClass);
+            _handlerInstances.Add(handler.GetType(), handler);
 
-            CacheConventionBasedEventingMethods(handlerClass);
+            LoadConventionBasedHandlerMethods(handler);
         }
 
-        internal bool GetCachedMethod(Type type, [NotNullWhen(true)] out CachedMethod? cachedMethod)
+        /// <summary>
+        /// Calls the appropriate handler function for the given notification payload.
+        /// </summary>
+        /// <returns>Returns true if the function was found and executed.</returns>
+        internal bool RouteToNotificationHander(DmContext context, IDmPayload notificationPayload)
         {
-            if (_methodCache.TryGetValue(type, out cachedMethod) == false)
+            //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnNotificationReceived() event.
+            if (GetCachedMethod(notificationPayload, out var cachedMethod))
             {
-                return false;
-                //throw new Exception($"A handler function for type '{type.Name}' was not found in the assembly cache.");
+                if (GetCachedInstance(cachedMethod, out var cachedInstance))
+                {
+                    var method = MakeGenericMethodForPayload(cachedMethod, notificationPayload);
+
+                    switch (cachedMethod.MethodType)
+                    {
+                        case CachedMethodType.PayloadOnly:
+                            method.Invoke(cachedInstance, [notificationPayload]);
+                            return true;
+                        case CachedMethodType.PayloadWithContext:
+                            method.Invoke(cachedInstance, [context, notificationPayload]);
+                            return true;
+                    }
+                }
             }
 
-            if (cachedMethod.Method.DeclaringType == null)
-            {
-                return false;
-                //throw new Exception($"A handler function for type '{type.Name}' was found, but it is not in class that can be instantiated.");
-            }
-
-            return true;
+            return false;
         }
 
-        internal bool GetCachedInstance(CachedMethod cachedMethod, [NotNullWhen(true)] out IDmMessageHandler? cachedInstance)
+        /// <summary>
+        /// Creates a cacheable and invokable instance of a handler function by matching generic argument types.
+        /// </summary>
+        private static MethodInfo MakeGenericMethodForPayload(CachedMethod cachedMethod, IDmPayload payload)
+        {
+            var payloadType = payload.GetType();
+
+            if (Caching.CacheTryGet<MethodInfo>(payloadType, out var cached) && cached != null)
+            {
+                return cached;
+            }
+
+            if (payloadType.IsGenericType && cachedMethod.Method.IsGenericMethod == true)
+            {
+                //If both the payload and the handler function are generic, We need to create a
+                //  generic version of the handler function using the generic types of the payload.
+
+                // Get the generic type definition and its assembly name
+                var typeDefinitionName = payloadType.GetGenericTypeDefinition().FullName
+                     ?? throw new Exception("The generic type name is not available.");
+
+                var assemblyName = payloadType.Assembly.FullName
+                     ?? throw new Exception("The generic assembly type name is not available.");
+
+                // Recursively get the AssemblyQualifiedName of generic arguments
+                var genericTypeArguments = payloadType.GetGenericArguments()
+                    .Select(t => Type.GetType(t.AssemblyQualifiedName ?? Reflection.GetAssemblyQualifiedTypeName(t))
+                     ?? throw new Exception($"The generic assembly type [{t.AssemblyQualifiedName}] could not be instantiated.")
+                    ).ToArray();
+
+                if (genericTypeArguments == null)
+                {
+                    throw new Exception("The generic assembly type could not be instantiated.");
+                }
+
+                var genericMethod = cachedMethod.Method.MakeGenericMethod(genericTypeArguments)
+                    ?? throw new Exception("The generic assembly type could not be instantiated.");
+
+                Caching.CacheSetOneMinute(payloadType, genericMethod);
+
+                return genericMethod;
+            }
+            else
+            {
+                return cachedMethod.Method;
+            }
+        }
+
+        /// <summary>
+        /// Gets the handler class instance from the pre-loaded handler instance cache.
+        /// </summary>
+        private bool GetCachedInstance(CachedMethod cachedMethod, [NotNullWhen(true)] out IDmMessageHandler? cachedInstance)
         {
             if (cachedMethod.Method.DeclaringType == null)
             {
                 cachedInstance = null;
                 return false;
-                //throw new Exception($"The handler function '{cachedMethod.Name}' does not have a container class.");
             }
 
-            if (_instanceCache.TryGetValue(cachedMethod.Method.DeclaringType, out cachedInstance))
+            if (_handlerInstances.TryGetValue(cachedMethod.Method.DeclaringType, out cachedInstance))
             {
                 return true;
             }
@@ -97,22 +158,42 @@ namespace NTDLS.DatagramMessaging.Internal
             if (cachedInstance == null)
             {
                 return false;
-                //throw new Exception($"Failed to instantiate container class '{cachedMethod.DeclaringType.Name}' for handler function '{cachedMethod.Name}'.");
             }
-            _instanceCache.Add(cachedMethod.Method.DeclaringType, cachedInstance);
+            _handlerInstances.Add(cachedMethod.Method.DeclaringType, cachedInstance);
 
             return true;
         }
 
-        internal void CacheConventionBasedEventingMethods(IDmMessageHandler handlerClass)
+        /// <summary>
+        /// Gets the handler function from the pre-loaded handler function cache.
+        /// </summary>
+        private bool GetCachedMethod(IDmPayload payload, [NotNullWhen(true)] out CachedMethod? cachedMethod)
+        {
+            var typeName = Reflection.GetAssemblyQualifiedTypeNameWithClosedGenerics(payload);
+
+            if (_handlerMethods.TryGetValue(typeName, out cachedMethod) == false)
+            {
+                return false;
+            }
+
+            if (cachedMethod.Method.DeclaringType == null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Loads the handler functions from the given handler class.
+        /// </summary>
+        private void LoadConventionBasedHandlerMethods(IDmMessageHandler handlerClass)
         {
             foreach (var method in handlerClass.GetType().GetMethods())
             {
                 var parameters = method.GetParameters();
                 if (parameters.Length == 1)
                 {
-                    //Notification prototype: void HandleMyNotification(DmContext context, MyNotification notification)
-
                     if (typeof(IDmPayload).IsAssignableFrom(parameters[0].ParameterType) == false)
                     {
                         continue;
@@ -121,13 +202,12 @@ namespace NTDLS.DatagramMessaging.Internal
                     var payloadParameter = parameters[0];
                     if (payloadParameter != null)
                     {
-                        _methodCache.Add(payloadParameter.ParameterType, new CachedMethod(CachedMethodType.PayloadOnly, method));
+                        var payloadParameterTypeName = Reflection.GetAssemblyQualifiedTypeNameWithClosedGenerics(payloadParameter.ParameterType);
+                        _handlerMethods.Add(payloadParameterTypeName, new CachedMethod(CachedMethodType.PayloadOnly, method));
                     }
                 }
                 else if (parameters.Length == 2)
                 {
-                    //Notification prototype: void HandleMyNotification(DmContext context, MyNotification notification)
-
                     if (typeof(DmContext).IsAssignableFrom(parameters[0].ParameterType) == false)
                     {
                         continue;
@@ -141,7 +221,8 @@ namespace NTDLS.DatagramMessaging.Internal
                     var payloadParameter = parameters[1];
                     if (payloadParameter != null)
                     {
-                        _methodCache.Add(payloadParameter.ParameterType, new CachedMethod(CachedMethodType.PayloadWithContext, method));
+                        var payloadParameterTypeName = Reflection.GetAssemblyQualifiedTypeNameWithClosedGenerics(payloadParameter.ParameterType);
+                        _handlerMethods.Add(payloadParameterTypeName, new CachedMethod(CachedMethodType.PayloadWithContext, method));
                     }
                 }
             }

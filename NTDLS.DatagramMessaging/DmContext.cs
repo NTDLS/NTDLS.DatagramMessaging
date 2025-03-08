@@ -4,32 +4,32 @@ using System.Threading;
 namespace NTDLS.DatagramMessaging
 {
     /// <summary>
-    /// Contains information about the endpoint and the connection.
+    /// Contains information about the endpoint and the client.
     /// </summary>
     public class DmContext
     {
         /// <summary>
         /// This is the RPC server or client instance.
         /// </summary>
-        public DmMessenger Endpoint { get; set; }
+        public DatagramMessenger Messenger { get; private set; }
 
         /// <summary>
         /// The UDP client associated with this peer.
         /// </summary>
-        public UdpClient UdpClient { get; set; }
+        public UdpClient Client { get; private set; }
 
         /// <summary>
         /// //The thread that receives data for this connection.
         /// </summary>
-        public Thread Thread { get; set; }
+        public Thread Thread { get; private set; }
 
         /// <summary>
-        /// Creates a new ReliableMessagingContext instance.
+        /// Creates a new DmContext instance.
         /// </summary>
-        public DmContext(DmMessenger endpoint, UdpClient udpClient, Thread thread)
+        public DmContext(DatagramMessenger messenger, UdpClient client, Thread thread)
         {
-            Endpoint = endpoint;
-            UdpClient = udpClient;
+            Messenger = messenger;
+            Client = client;
             Thread = thread;
         }
     }
