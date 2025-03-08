@@ -18,12 +18,12 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <summary>
         ///The maximum size of the receive buffer. If the buffer ever gets full while receiving data it will be automatically resized up to MaxReceiveBufferSize.
         /// </summary>
-        public int MaxReceiveBufferSize { get; set; } = 1024 * 1024;
+        public int MaxReceiveBufferSize { get; private set; } = 1024 * 1024;
 
         /// <summary>
         ///The growth rate of the auto-resizing for the receive buffer.
         /// </summary>
-        public double ReceiveBufferGrowthRate { get; set; } = 0.2;
+        public double ReceiveBufferGrowthRate { get; private set; } = 0.2;
 
         /// <summary>
         /// The number of bytes in the current receive buffer.
@@ -98,9 +98,6 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <summary>
         /// Instantiates a new frame buffer with a pre-defined size.
         /// </summary>
-        /// <param name="initialReceiveBufferSize"></param>
-        /// <param name="maxReceiveBufferSize"></param>
-        /// <param name="receiveBufferGrowthRate"></param>
         public FrameBuffer(int initialReceiveBufferSize, int maxReceiveBufferSize, double receiveBufferGrowthRate = 0.2)
         {
             InitialReceiveBufferSize = initialReceiveBufferSize;

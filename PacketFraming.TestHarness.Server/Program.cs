@@ -7,14 +7,18 @@ namespace PacketFraming.TestHarness.Server
     {
         static void Main()
         {
-            var udpManager = new DmMessenger(1234);
+            var dm = new DatagramMessenger(1234);
 
-            udpManager.OnNotificationReceived += UdpManager_OnNotificationReceived;
+            dm.OnNotificationReceived += UdpManager_OnNotificationReceived;
         }
 
         private static void UdpManager_OnNotificationReceived(DmContext context, IDmNotification payload)
         {
-            if (payload is MyFirstUDPPacket myFirstUDPPacket)
+            if (payload is DmNotificationBytes bytes)
+            {
+                Console.WriteLine($"Received {bytes.Bytes.Length} bytes.");
+            }
+            else if (payload is MyFirstUDPPacket myFirstUDPPacket)
             {
                 Console.WriteLine($"{myFirstUDPPacket.Message}->{myFirstUDPPacket.UID}->{myFirstUDPPacket.TimeStamp}");
             }

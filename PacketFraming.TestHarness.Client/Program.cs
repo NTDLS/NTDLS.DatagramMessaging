@@ -7,16 +7,23 @@ namespace PacketFraming.TestHarness.Client
     {
         static void Main()
         {
-            var udpManager = new DmMessenger();
+            var dm = new DatagramMessenger();
+
+            var rand = new Random();
 
             int packetNumber = 0;
 
             while (true)
             {
-                udpManager.WriteMessage("127.0.0.1", 1234,
+                dm.WriteMessage("127.0.0.1", 1234,
                     new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
 
-                Thread.Sleep(100);
+                byte[] randomBytes = new byte[100];
+                rand.NextBytes(randomBytes); // Fill array with random values
+
+                dm.WriteBytes("127.0.0.1", 1234, randomBytes);
+
+                Thread.Sleep(10);
             }
         }
     }

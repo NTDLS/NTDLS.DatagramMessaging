@@ -1,10 +1,10 @@
 # NTDLS.DatagramMessaging
 
-📦 Be sure to check out the NuGet pacakge: https://www.nuget.org/packages/NTDLS.DatagramMessaging
+📦 Be sure to check out the NuGet package: https://www.nuget.org/packages/NTDLS.DatagramMessaging
 
 NTDLS.DatagramMessaging is a set of classes and extensions methods that allow you to send/receive
 UDP packets with ease. It handles corruption checks, concatenation, fragmentation, serialization
-and adds compression.
+and compression with optional overloads.
 
 ## UDP Sever (Event based):
 > Here we are instantiating a DmMessenger and giving it a listen port. This will cause the
@@ -12,9 +12,9 @@ and adds compression.
 ```csharp
 static void Main()
 {
-    var udpManager = new DmMessenger(1234);
+    var dm = new DatagramMessenger(1234);
 
-    udpManager.OnNotificationReceived += UdpManager_OnNotificationReceived;
+    dm.OnNotificationReceived += UdpManager_OnNotificationReceived;
 }
 
 private static void UdpManager_OnNotificationReceived(DmContext context, IDmNotification payload)
@@ -31,19 +31,18 @@ private static void UdpManager_OnNotificationReceived(DmContext context, IDmNoti
 > manager to go into listen mode. Any received messages will handled by the class HandlePackets
 > which was suppled to the UDP messenger by a call to AddHandler().
 ```csharp
-    static void Main()
-    {
-        var udpManager = new DmMessenger(1234);
+static void Main()
+{
+    var dm = new DatagramMessenger(1234);
 
-        udpManager.AddHandler(new HandlePackets());
-    }
+    dm.AddHandler(new HandlePackets());
+}
 
-    private class HandlePackets : IDmMessageHandler
+private class HandlePackets : IDmMessageHandler
+{
+    public static void ProcessFrameNotificationCallback(DmContext context, MyFirstUDPPacket payload)
     {
-        public static void ProcessFrameNotificationCallback(DmContext context, MyFirstUDPPacket payload)
-        {
-            Console.WriteLine($"{payload.Message}->{payload.UID}->{payload.TimeStamp}");
-        }
+        Console.WriteLine($"{payload.Message}->{payload.UID}->{payload.TimeStamp}");
     }
 }
 ```
@@ -54,23 +53,22 @@ private static void UdpManager_OnNotificationReceived(DmContext context, IDmNoti
 ```csharp
 static void Main()
 {
-    var dmMessenger = new DmMessenger();
+    var dm = new DatagramMessenger();
 
     int packetNumber = 0;
 
     while (true)
     {
-        dmMessenger.WriteMessage("127.0.0.1", 1234,
+        dm.WriteMessage("127.0.0.1", 1234,
             new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
 
-        Thread.Sleep(100);
+        Thread.Sleep(10);
     }
 }
 ```
 
 ## Supporting Code:
 > The class that we are going to be serializing and deserializing in the examples.
-
 ```csharp
 public class MyFirstUDPPacket: IDmNotification
 {
