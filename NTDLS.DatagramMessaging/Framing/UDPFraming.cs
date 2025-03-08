@@ -22,14 +22,14 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="payload">The notification payload.</param>
         public delegate void ProcessFrameNotificationCallback(IDmNotification payload);
 
-        private static readonly PessimisticCriticalResource<Dictionary<string, MethodInfo>> _reflectioncache = new();
+        private static readonly PessimisticCriticalResource<Dictionary<string, MethodInfo>> _reflectionCache = new();
 
         #region Extension methods.
 
         /// <summary>
         /// Waits on bytes to become available, reads those bytes then parses the available frames (if any) and calls the appropriate callbacks.
         /// </summary>
-        /// <param name="udpClient">The UDP client to receive daata from.</param>
+        /// <param name="udpClient">The UDP client to receive data from.</param>
         /// <param name="frameBuffer">The frame buffer that will be used to receive bytes.</param>
         /// <param name="processNotificationCallback">Optional callback to call when a notification frame is received.</param>
         /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
@@ -163,7 +163,7 @@ namespace NTDLS.DatagramMessaging.Framing
         private static byte[] AssembleFrame(FrameBody frameBody)
         {
             var frameBodyBytes = Utility.SerializeToByteArray(frameBody);
-            var compressedFrameBodyBytes = Utility.Compress(frameBodyBytes);
+            var compressedFrameBodyBytes = Compression.Compress(frameBodyBytes);
 
             var grossFrameSize = compressedFrameBodyBytes.Length + NtFrameDefaults.FRAME_HEADER_SIZE;
             var grossFrameBytes = new byte[grossFrameSize];
@@ -249,7 +249,7 @@ namespace NTDLS.DatagramMessaging.Framing
                 var compressedFrameBodyBytes = new byte[netFrameSize];
                 Buffer.BlockCopy(frameBuffer.FrameBuilder, NtFrameDefaults.FRAME_HEADER_SIZE, compressedFrameBodyBytes, 0, netFrameSize);
 
-                var FrameBodyBytes = Utility.Decompress(compressedFrameBodyBytes);
+                var FrameBodyBytes = Compression.Decompress(compressedFrameBodyBytes);
                 var frameBody = Utility.DeserializeToObject<FrameBody>(FrameBodyBytes);
 
                 //Zero out the consumed portion of the frame buffer - more for fun than anything else.
@@ -289,7 +289,7 @@ namespace NTDLS.DatagramMessaging.Framing
                 return new UDPFramePayloadBytes(frame.Bytes);
             }
 
-            var genericToObjectMethod = _reflectioncache.Use((o) =>
+            var genericToObjectMethod = _reflectionCache.Use((o) =>
             {
                 if (o.TryGetValue(frame.ObjectType, out var method))
                 {
@@ -314,7 +314,7 @@ namespace NTDLS.DatagramMessaging.Framing
 
             genericToObjectMethod = toObjectMethod.MakeGenericMethod(genericType);
 
-            _reflectioncache.Use((o) => o.TryAdd(frame.ObjectType, genericToObjectMethod));
+            _reflectionCache.Use((o) => o.TryAdd(frame.ObjectType, genericToObjectMethod));
 
             return (IDmPayload?)genericToObjectMethod.Invoke(null, new object[] { json })
                 ?? throw new Exception($"ExtractFramePayload: Payload can not be null.");
