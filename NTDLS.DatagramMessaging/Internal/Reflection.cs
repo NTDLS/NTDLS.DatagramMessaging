@@ -72,7 +72,7 @@ namespace NTDLS.DatagramMessaging.Internal
 
                 string genericArgumentsString = '[' + string.Join("], [", genericArguments) + ']';
 
-                assemblyQualifiedName  = $"{typeDefinitionName}[{genericArgumentsString}], {assemblyName}";
+                assemblyQualifiedName = $"{typeDefinitionName}[{genericArgumentsString}], {assemblyName}";
             }
             else
             {

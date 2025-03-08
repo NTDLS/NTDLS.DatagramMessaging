@@ -111,11 +111,8 @@ namespace NTDLS.DatagramMessaging
         }
 
         /// <summary>
-        /// Gets a random and unused port number that can be used for listending.
+        /// Gets a random and unused port number that can be used for listening.
         /// </summary>
-        /// <param name="minPort"></param>
-        /// <param name="maxPort"></param>
-        /// <returns></returns>
         public static int GetRandomUnusedUDPPort(int minPort, int maxPort)
         {
             while (true)
@@ -242,8 +239,11 @@ namespace NTDLS.DatagramMessaging
                 {
                     try
                     {
-                        while (_keepRunning && Client.ReadAndProcessFrames(ref clientEndPoint, frameBuffer,
-                            (payload) => LocalProcessFrameNotificationByConvention(context, payload)))
+                        while (_keepRunning && Client.ReadAndProcessFrames(ref clientEndPoint, context, frameBuffer,
+                            (payload) => LocalProcessFrameNotificationByConvention(context, payload),
+                                context.GetSerializationProvider,/*This is a delegate function call so that we can get the provider at the latest possible moment.*/
+                                context.GetCompressionProvider,/*This is a delegate function call so that we can get the provider at the latest possible moment.*/
+                                context.GetCryptographyProvider/*This is a delegate function call so that we can get the provider at the latest possible moment.*/))
                         {
                         }
                     }
