@@ -85,7 +85,7 @@ namespace NTDLS.DatagramMessaging
         }
 
         /// <summary>
-        /// Adds a class that contains notification and query handler functions.
+        /// Adds a class that contains notification handler functions.
         /// </summary>
         /// <param name="handlerClass"></param>
         public void AddHandler(IDmMessageHandler handlerClass)
