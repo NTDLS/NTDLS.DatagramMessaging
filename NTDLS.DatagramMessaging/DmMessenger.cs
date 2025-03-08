@@ -101,6 +101,11 @@ namespace NTDLS.DatagramMessaging
         #endregion
 
         /// <summary>
+        /// When true, notifications are queued in a thread pool. Otherwise, notifications block other activities.
+        /// </summary>
+        public bool AsynchronousNotifications { get; set; } = true;
+
+        /// <summary>
         /// Underlying native UDP client.
         /// </summary>
         public UdpClient? Client { get; set; }
@@ -111,7 +116,7 @@ namespace NTDLS.DatagramMessaging
         public ReflectionCache ReflectionCache { get; private set; } = new();
 
         /// <summary>
-        /// Starts a new managed UDP "connection" that can send and receive. You must also call AddHandler() or hook the OnNotificationReceivedevent  so that messages can be handled.
+        /// Starts a new managed UDP "connection" that can send and receive. You must also call AddHandler() or hook the OnNotificationReceivedEvent  so that messages can be handled.
         /// </summary>
         /// <param name="listenPort"></param>
         public DmMessenger(int listenPort)

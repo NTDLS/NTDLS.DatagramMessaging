@@ -14,21 +14,15 @@ namespace NTDLS.DatagramMessaging.Framing
     public class FrameBody
     {
         /// <summary>
-        /// The unique ID of the frame body. This is also used to pair query replies with waiting queries.
-        /// </summary>
-        [ProtoMember(1)]
-        public Guid Id { get; set; } = Guid.NewGuid();
-
-        /// <summary>
         /// The full assembly qualified name of the type of the payload.
         /// </summary>
-        [ProtoMember(2)]
+        [ProtoMember(1)]
         public string ObjectType { get; set; } = string.Empty;
 
         /// <summary>
         /// Sometimes we just need to send a byte array without all the overhead of json, that's when we use BytesPayload.
         /// </summary>
-        [ProtoMember(3)]
+        [ProtoMember(2)]
         public byte[] Bytes { get; set; } = Array.Empty<byte>();
 
         /// <summary>

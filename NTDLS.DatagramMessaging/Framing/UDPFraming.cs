@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using static NTDLS.DatagramMessaging.Framing.Defaults;
 
 namespace NTDLS.DatagramMessaging.Framing
@@ -345,11 +346,35 @@ namespace NTDLS.DatagramMessaging.Framing
 
                 if (framePayload is UDPFramePayloadBytes frameNotificationBytes)
                 {
-                    processNotificationCallback(frameNotificationBytes);
+                    if (messenger.AsynchronousNotifications)
+                    {
+                        //Keep a reference to the frame payload that we are going to perform an async wait on.
+                        var asynchronousNotificationBytes = frameNotificationBytes;
+                        Task.Run(() =>
+                        {
+                            processNotificationCallback(asynchronousNotificationBytes);
+                        });
+                    }
+                    else
+                    {
+                        processNotificationCallback(frameNotificationBytes);
+                    }
                 }
                 else if (framePayload is IDmNotification notification)
                 {
-                    processNotificationCallback(notification);
+                    if (messenger.AsynchronousNotifications)
+                    {
+                        //Keep a reference to the frame payload that we are going to perform an async wait on.
+                        var asynchronousNotification = notification;
+                        Task.Run(() =>
+                        {
+                            processNotificationCallback(asynchronousNotification);
+                        });
+                    }
+                    else
+                    {
+                        processNotificationCallback(notification);
+                    }
                 }
                 else
                 {

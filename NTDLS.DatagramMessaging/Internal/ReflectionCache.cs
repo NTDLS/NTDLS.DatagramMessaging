@@ -41,7 +41,7 @@ namespace NTDLS.DatagramMessaging.Internal
             public CachedMethodType MethodType { get; private set; }
 
             /// <summary>
-            /// Creates a new instace of the CachedMethod class.
+            /// Creates a new instance of the CachedMethod class.
             /// </summary>
             /// <param name="methodType"></param>
             /// <param name="method"></param>
@@ -112,7 +112,6 @@ namespace NTDLS.DatagramMessaging.Internal
                 if (parameters.Length == 1)
                 {
                     //Notification prototype: void HandleMyNotification(DmContext context, MyNotification notification)
-                    //Query prototype:        IReliableMessagingQueryReply HandleMyQuery(DmContext context, MyQuery query)
 
                     if (typeof(IDmPayload).IsAssignableFrom(parameters[0].ParameterType) == false)
                     {
@@ -128,7 +127,6 @@ namespace NTDLS.DatagramMessaging.Internal
                 else if (parameters.Length == 2)
                 {
                     //Notification prototype: void HandleMyNotification(DmContext context, MyNotification notification)
-                    //Query prototype:        IReliableMessagingQueryReply HandleMyQuery(DmContext context, MyQuery query)
 
                     if (typeof(DmContext).IsAssignableFrom(parameters[0].ParameterType) == false)
                     {
