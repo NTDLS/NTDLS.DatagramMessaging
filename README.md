@@ -15,6 +15,9 @@ static void Main()
     var dm = new DatagramMessenger(1234);
 
     dm.OnNotificationReceived += UdpManager_OnNotificationReceived;
+
+    Console.ReadLine();
+    dm.Stop();
 }
 
 private static void UdpManager_OnNotificationReceived(DmContext context, IDmNotification payload)
@@ -68,6 +71,9 @@ static void Main()
 
         Thread.Sleep(10);
     }
+
+    Console.ReadLine();
+    dm.Stop();
 }
 ```
 

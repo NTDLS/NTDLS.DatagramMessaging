@@ -11,7 +11,6 @@ namespace PacketFraming.TestHarness.Client
 
             dm.OnNotificationReceived += UdpManager_OnNotificationReceived;
 
-
             var rand = new Random();
 
             int packetNumber = 0;
@@ -28,6 +27,10 @@ namespace PacketFraming.TestHarness.Client
 
                 Thread.Sleep(10);
             }
+
+            Console.ReadLine();
+
+            dm.Stop();
         }
 
         private static void UdpManager_OnNotificationReceived(DmContext context, IDmNotification payload)

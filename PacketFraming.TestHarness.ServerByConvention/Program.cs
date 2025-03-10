@@ -10,6 +10,10 @@ namespace PacketFraming.TestHarness.ServerByConvention
             var dm = new DatagramMessenger(1234);
 
             dm.AddHandler(new HandlePackets());
+
+            Console.ReadLine();
+
+            dm.Stop();
         }
 
         private class HandlePackets : IDmMessageHandler

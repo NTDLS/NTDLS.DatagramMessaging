@@ -38,7 +38,8 @@ namespace NTDLS.DatagramMessaging
         private IDmSerializationProvider? _serializationProvider = null;
 
         /// <summary>
-        /// Sets the custom serialization provider that this client should use when sending/receiving data. Can be cleared by passing null or calling ClearSerializationProvider().
+        /// Sets the custom serialization provider that this client should use when sending/receiving data.
+        /// Can be cleared by passing null or calling ClearSerializationProvider().
         /// </summary>
         public void SetSerializationProvider(IDmSerializationProvider? provider)
             => _serializationProvider = provider;
@@ -120,9 +121,8 @@ namespace NTDLS.DatagramMessaging
 
         /// <summary>
         /// Starts a new managed UDP "connection" that can send and receive.
-        /// You must also call AddHandler() or hook the OnNotificationReceivedEvent  so that messages can be handled.
+        /// You must also call AddHandler() or hook the OnNotificationReceivedEvent so that messages can be handled.
         /// </summary>
-        /// <param name="listenPort"></param>
         public DatagramMessenger(int listenPort)
         {
             Client = new UdpClient(listenPort);
@@ -150,6 +150,16 @@ namespace NTDLS.DatagramMessaging
         }
 
         /// <summary>
+        /// Starts a new managed UDP "connection" that can send and receive.
+        /// You must also call AddHandler() or hook the OnNotificationReceivedEvent so that messages can be handled.
+        /// </summary>
+        public void Start(int listenPort)
+        {
+            Client = new UdpClient(listenPort);
+            ListenAsync(listenPort);
+        }
+
+        /// <summary>
         /// Clean up any remaining resources.
         /// </summary>
         ~DatagramMessenger()
@@ -172,7 +182,7 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Closes the UDP manager, stops all listening threads.
         /// </summary>
-        public void Shutdown()
+        public void Stop()
         {
             if (_keepRunning)
             {

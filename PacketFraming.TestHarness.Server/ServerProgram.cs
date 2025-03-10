@@ -10,6 +10,10 @@ namespace PacketFraming.TestHarness.Server
             var dm = new DatagramMessenger(1234);
 
             dm.OnNotificationReceived += UdpManager_OnNotificationReceived;
+
+            Console.ReadLine();
+
+            dm.Stop();
         }
 
         private static void UdpManager_OnNotificationReceived(DmContext context, IDmNotification payload)

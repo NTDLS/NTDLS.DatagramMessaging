@@ -48,7 +48,7 @@ namespace NTDLS.DatagramMessaging
         }
 
         /// <summary>
-        /// Sends a serialized message to the specified endpoint.
+        /// Sends a return serialized message to the remote endpoint via NAT.
         /// </summary>
         public void WriteReplyMessage(IDmNotification payload)
         {
@@ -58,7 +58,7 @@ namespace NTDLS.DatagramMessaging
         }
 
         /// <summary>
-        /// Sends a frame containing the given bytes to the specified endpoint.
+        /// Sends a frame containing the given bytes to the remote endpoint via NAT.
         /// </summary>
         public void WriteReplyBytes(byte[] payload)
         {
