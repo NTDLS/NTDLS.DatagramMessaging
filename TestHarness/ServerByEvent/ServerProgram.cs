@@ -1,7 +1,7 @@
 ﻿using NTDLS.DatagramMessaging;
-using PacketFraming.TestHarness.Shared;
+using Shared;
 
-namespace PacketFraming.TestHarness.Server
+namespace ServerByEvent
 {
     internal class ServerProgram
     {

@@ -345,6 +345,10 @@ namespace NTDLS.DatagramMessaging.Framing
                         context.Messenger.ProcessFrameNotificationByConvention(context, frameNotificationBytes);
                     }
                 }
+                else if (framePayload is DmKeepAliveMessage)
+                {
+                    //Discard keep-alive message.
+                }
                 else if (framePayload is IDmNotification notification)
                 {
                     if (context.Messenger.AsynchronousNotifications)

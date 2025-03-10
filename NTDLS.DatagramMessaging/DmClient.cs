@@ -15,7 +15,9 @@ namespace NTDLS.DatagramMessaging
     {
         private static readonly Random _random = new();
         private bool _keepRunning = false;
+        private bool _keepKeepAliveRunning = false;
         private Thread? _receiveThread = null;
+        private Thread? _keepAliveThread = null;
 
         #region Events.
 
@@ -118,6 +120,67 @@ namespace NTDLS.DatagramMessaging
         }
 
         /// <summary>
+        /// Sends transparent keep-alive messages to the server, default 10 seconds.
+        /// This is primarily to satisfy NAT reply port timeouts.
+        /// </summary>
+        public void StartKeepAlive(TimeSpan? interval = null)
+        {
+            if (_keepAliveThread != null || _keepKeepAliveRunning)
+            {
+                return;
+            }
+
+            _keepKeepAliveRunning = true;
+
+            interval ??= TimeSpan.FromSeconds(10);
+            DateTime? lastKeepAlive = null;
+
+            _keepAliveThread = new Thread(() =>
+            {
+                while (_keepKeepAliveRunning)
+                {
+                    if (lastKeepAlive == null || (DateTime.UtcNow - lastKeepAlive.Value) > interval)
+                    {
+                        lastKeepAlive = DateTime.UtcNow;
+                        if (Context.Endpoint != null)
+                        {
+                            try
+                            {
+                                Dispatch(new DmKeepAliveMessage());
+                            }
+                            catch
+                            {
+                            }
+                        }
+                    }
+                    Thread.Sleep(100);
+                }
+            });
+
+            _keepAliveThread.Start();
+        }
+
+        /// <summary>
+        /// Stops the keep-alive thread, if its running.
+        /// </summary>
+        public void StopKeepAlive(bool waitForCompletion = true)
+        {
+            if (_keepAliveThread == null || !_keepKeepAliveRunning)
+            {
+                return;
+            }
+
+            _keepKeepAliveRunning = false;
+
+            if (waitForCompletion)
+            {
+                _keepAliveThread.Join();
+            }
+
+            _keepAliveThread = null;
+        }
+
+        /// <summary>
         /// Adds a class that contains notification handler functions.
         /// </summary>
         /// <param name="handler"></param>
@@ -129,7 +192,7 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Closes the UDP manager, stops all listening threads.
         /// </summary>
-        public void Stop()
+        public void Stop(bool waitForCompletion = true)
         {
             if (_keepRunning)
             {
@@ -139,7 +202,12 @@ namespace NTDLS.DatagramMessaging
                 Client = null;
 
                 _keepRunning = false;
-                _receiveThread?.Join();
+                if (waitForCompletion)
+                {
+                    _receiveThread?.Join();
+                }
+
+                StopKeepAlive(waitForCompletion);
             }
         }
 

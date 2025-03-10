@@ -16,7 +16,7 @@
     "Name": "Convention",
     "Projects": [
       {
-        "Path": "TestHarness\\ServerByEvent\\ServerByEvent.csproj",
+        "Path": "TestHarness\\ServerByConvention\\ServerByConvention.csproj",
         "Action": "Start"
       },
       {

@@ -1,7 +1,7 @@
 ﻿using NTDLS.DatagramMessaging;
-using PacketFraming.TestHarness.Shared;
+using Shared;
 
-namespace PacketFraming.TestHarness.Client
+namespace Client
 {
     internal class ClientProgram
     {
@@ -15,11 +15,13 @@ namespace PacketFraming.TestHarness.Client
 
             int packetNumber = 0;
 
+            dmClient.StartKeepAlive();
+
             while (true)
             {
                 dmClient.Dispatch(new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
 
-                byte[] randomBytes = new byte[100];
+                var randomBytes = new byte[100];
                 rand.NextBytes(randomBytes); // Fill array with random values
 
                 dmClient.Dispatch(randomBytes);

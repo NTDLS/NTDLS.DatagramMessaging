@@ -1,6 +1,6 @@
 ﻿using NTDLS.DatagramMessaging;
 
-namespace PacketFraming.TestHarness.Shared
+namespace Shared
 {
     public class MyFirstUDPPacket : IDmNotification
     {
