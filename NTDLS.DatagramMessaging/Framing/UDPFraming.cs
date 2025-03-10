@@ -17,27 +17,6 @@ namespace NTDLS.DatagramMessaging.Framing
     /// </summary>
     public static class UDPFraming
     {
-        /// <summary>
-        /// The callback that is used to notify of the receipt of a notification frame.
-        /// </summary>
-        /// <param name="payload">The notification payload.</param>
-        public delegate void ProcessFrameNotificationCallback(IDmNotification payload);
-
-        /// <summary>
-        /// Callback to get the callback that is called to allow for manipulation of bytes before/after they are sent/received.
-        /// </summary>
-        public delegate IDmCryptographyProvider? GetEncryptionProviderCallback();
-
-        /// <summary>
-        /// Callback to get the callback that is called to allow for manipulation of bytes before/after they are sent/received.
-        /// </summary>
-        public delegate IDmCompressionProvider? GetCompressionProviderCallback();
-
-        /// <summary>
-        /// Callback to get the callback that is called to allow for custom serialization.
-        /// </summary>
-        public delegate IDmSerializationProvider? GetSerializationProviderCallback();
-
         private static readonly PessimisticCriticalResource<Dictionary<string, MethodInfo>> _reflectionCache = new();
 
         #region Extension methods.
@@ -345,9 +324,10 @@ namespace NTDLS.DatagramMessaging.Framing
                         context.Messenger.ProcessFrameNotificationByConvention(context, frameNotificationBytes);
                     }
                 }
-                else if (framePayload is DmKeepAliveMessage)
+                else if (framePayload is DmKeepAliveMessage keepAliveMessage)
                 {
                     //Discard keep-alive message.
+                    context.Messenger.InvokeOnKeepAlive(context, keepAliveMessage);
                 }
                 else if (framePayload is IDmNotification notification)
                 {

@@ -15,9 +15,9 @@
     <RepositoryUrl>https://github.com/NTDLS/NTDLS.UDPPacketFraming</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageReleaseNotes>
-      NAT context caching and keep-alive.
+      Added keep-alive eventing.
     </PackageReleaseNotes>
-    <Version>1.6.1</Version>
+    <Version>1.6.2</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>UDP;framing;network;io;datagram</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>

@@ -30,8 +30,28 @@ namespace NTDLS.DatagramMessaging
         /// Event fired when a notification is received from a client.
         /// </summary>
         /// <param name="context">Information about the connection.</param>
-        /// <param name="notification"></param>
+        /// <param name="notification">Interface containing the instance of the notification class.</param>
         public delegate void NotificationReceivedEvent(DmContext context, IDmNotification notification);
+
+        /// <summary>
+        /// Event fired when a keep-alive notification is received.
+        /// </summary>
+        public event KeepAliveReceivedEvent? OnKeepAliveReceived;
+
+        /// <summary>
+        /// Event fired when a keep-alive notification is received.
+        /// </summary>
+        /// <param name="context">Information about the connection.</param>
+        /// <param name="keepAlive">Instance of the keep-alive class that was received.</param>
+        public delegate void KeepAliveReceivedEvent(DmContext context, DmKeepAliveMessage keepAlive);
+
+        /// <summary>
+        /// Event fired when a keep-alive notification is received.
+        /// </summary>
+        /// <param name="context">Information about the connection.</param>
+        /// <param name="keepAlive">Instance of the keep-alive class that was received.</param>
+        public void InvokeOnKeepAlive(DmContext context, DmKeepAliveMessage keepAlive)
+            => OnKeepAliveReceived?.Invoke(context, keepAlive);
 
         #endregion
 

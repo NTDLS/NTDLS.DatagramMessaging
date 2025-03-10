@@ -15,5 +15,10 @@
         /// Routes inbound packets to the appropriate handler.
         /// </summary>
         public void ProcessFrameNotificationByConvention(DmContext context, IDmNotification payload);
+
+        /// <summary>
+        /// Used to invoke the OnKeepAlive client event, if its hooked.
+        /// </summary>
+        public void InvokeOnKeepAlive(DmContext context, DmKeepAliveMessage keepAlive);
     }
 }
