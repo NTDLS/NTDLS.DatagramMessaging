@@ -24,3 +24,25 @@ NTDLS.DatagramMessaging/obj/
 PacketFraming.TestHarness.ServerByConvention/bin/
 
 PacketFraming.TestHarness.ServerByConvention/obj/
+
+PacketFraming.TestHarness.ServerByEvent/obj/
+
+TestHarness/Client/bin/
+
+TestHarness/Client/obj/
+
+TestHarness/ServerByConvention/obj/
+
+TestHarness/ServerByConvention/bin/
+
+TestHarness/ServerByEvent/bin/
+
+TestHarness/ServerByEvent/obj/
+
+TestHarness/Shared/obj/Debug/
+
+TestHarness/Shared/obj/
+
+TestHarness/Shared/bin/Release/
+
+TestHarness/Shared/bin/

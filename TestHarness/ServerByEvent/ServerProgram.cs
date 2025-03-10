@@ -7,13 +7,13 @@ namespace PacketFraming.TestHarness.Server
     {
         static void Main()
         {
-            var dm = new DatagramMessenger(1234);
+            var dmServer = new DmServer(1234);
 
-            dm.OnNotificationReceived += UdpManager_OnNotificationReceived;
+            dmServer.OnNotificationReceived += UdpManager_OnNotificationReceived;
 
             Console.ReadLine();
 
-            dm.Stop();
+            dmServer.Stop();
         }
 
         private static void UdpManager_OnNotificationReceived(DmContext context, IDmNotification payload)

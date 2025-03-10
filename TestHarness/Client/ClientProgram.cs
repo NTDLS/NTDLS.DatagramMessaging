@@ -7,9 +7,9 @@ namespace PacketFraming.TestHarness.Client
     {
         static void Main()
         {
-            var dm = new DatagramMessenger(0);
+            var dmClient = new DmClient("127.0.0.1", 1234);
 
-            dm.OnNotificationReceived += UdpManager_OnNotificationReceived;
+            dmClient.OnNotificationReceived += UdpManager_OnNotificationReceived;
 
             var rand = new Random();
 
@@ -17,20 +17,19 @@ namespace PacketFraming.TestHarness.Client
 
             while (true)
             {
-                dm.Dispatch("127.0.0.1", 1234,
-                    new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
+                dmClient.Dispatch(new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
 
                 byte[] randomBytes = new byte[100];
                 rand.NextBytes(randomBytes); // Fill array with random values
 
-                dm.Dispatch("127.0.0.1", 1234, randomBytes);
+                dmClient.Dispatch(randomBytes);
 
                 Thread.Sleep(10);
             }
 
             Console.ReadLine();
 
-            dm.Stop();
+            dmClient.Stop();
         }
 
         private static void UdpManager_OnNotificationReceived(DmContext context, IDmNotification payload)

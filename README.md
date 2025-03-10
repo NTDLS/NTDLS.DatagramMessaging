@@ -12,12 +12,13 @@ and compression with optional overloads.
 ```csharp
 static void Main()
 {
-    var dm = new DatagramMessenger(1234);
+    var dmServer = new DmServer(1234);
 
-    dm.OnNotificationReceived += UdpManager_OnNotificationReceived;
+    dmServer.OnNotificationReceived += UdpManager_OnNotificationReceived;
 
     Console.ReadLine();
-    dm.Stop();
+
+    dmServer.Stop();
 }
 
 private static void UdpManager_OnNotificationReceived(DmContext context, IDmNotification payload)
@@ -38,9 +39,13 @@ private static void UdpManager_OnNotificationReceived(DmContext context, IDmNoti
 ```csharp
 static void Main()
 {
-    var dm = new DatagramMessenger(1234);
+    var dmServer = new DmServer(1234);
 
-    dm.AddHandler(new HandlePackets());
+    dmServer.AddHandler(new HandlePackets());
+
+    Console.ReadLine();
+
+    dmServer.Stop();
 }
 
 private class HandlePackets : IDmMessageHandler
@@ -60,20 +65,19 @@ private class HandlePackets : IDmMessageHandler
 ```csharp
 static void Main()
 {
-    var dm = new DatagramMessenger();
+    var dmClient = new DmClient("127.0.0.1", 1234);
 
     int packetNumber = 0;
 
     while (true)
     {
-        dm.Dispatch("127.0.0.1", 1234,
-            new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
-
+        dmClient.Dispatch(new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
         Thread.Sleep(10);
     }
 
     Console.ReadLine();
-    dm.Stop();
+
+    dmClient.Stop();
 }
 ```
 

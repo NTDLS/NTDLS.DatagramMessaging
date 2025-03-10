@@ -3,11 +3,11 @@
     "Name": "Eventing",
     "Projects": [
       {
-        "Path": "PacketFraming.TestHarness.Client\\PacketFraming.TestHarness.Client.csproj",
+        "Path": "TestHarness\\ServerByEvent\\ServerByEvent.csproj",
         "Action": "Start"
       },
       {
-        "Path": "PacketFraming.TestHarness.Server\\PacketFraming.TestHarness.Server.csproj",
+        "Path": "TestHarness\\Client\\Client.csproj",
         "Action": "Start"
       }
     ]
@@ -16,11 +16,11 @@
     "Name": "Convention",
     "Projects": [
       {
-        "Path": "PacketFraming.TestHarness.ServerByConvention\\PacketFraming.TestHarness.ServerByConvention.csproj",
+        "Path": "TestHarness\\ServerByEvent\\ServerByEvent.csproj",
         "Action": "Start"
       },
       {
-        "Path": "PacketFraming.TestHarness.Client\\PacketFraming.TestHarness.Client.csproj",
+        "Path": "TestHarness\\Client\\Client.csproj",
         "Action": "Start"
       }
     ]
