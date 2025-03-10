@@ -20,13 +20,13 @@ namespace PacketFraming.TestHarness.Server
         {
             if (payload is DmNotificationBytes bytes)
             {
-                context.WriteReplyBytes(bytes.Bytes); //Echo the payload back to the sender.
+                context.Dispatch(bytes.Bytes); //Echo the payload back to the sender.
 
                 Console.WriteLine($"Received {bytes.Bytes.Length} bytes.");
             }
             else if (payload is MyFirstUDPPacket myFirstUDPPacket)
             {
-                context.WriteReplyMessage(myFirstUDPPacket); //Echo the payload back to the sender.
+                context.Dispatch(myFirstUDPPacket); //Echo the payload back to the sender.
 
                 Console.WriteLine($"{myFirstUDPPacket.Message}->{myFirstUDPPacket.UID}->{myFirstUDPPacket.TimeStamp}");
             }

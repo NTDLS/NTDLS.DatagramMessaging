@@ -230,7 +230,7 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Sends a serialized message to the specified endpoint.
         /// </summary>
-        public void WriteMessage(string hostOrIPAddress, int port, IDmNotification payload)
+        public void Dispatch(string hostOrIPAddress, int port, IDmNotification payload)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
             Client.WriteNotificationFrame(this, hostOrIPAddress, port, payload, _serializationProvider, _compressionProvider, _cryptographyProvider);
@@ -257,7 +257,7 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Sends a frame containing the given bytes to the specified endpoint.
         /// </summary>
-        public void WriteBytes(string hostOrIPAddress, int port, byte[] payload)
+        public void Dispatch(string hostOrIPAddress, int port, byte[] payload)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
             Client.WriteBytesFrame(this, hostOrIPAddress, port, payload, _serializationProvider, _compressionProvider, _cryptographyProvider);

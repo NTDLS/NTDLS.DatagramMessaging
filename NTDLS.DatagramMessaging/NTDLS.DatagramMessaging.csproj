@@ -17,7 +17,7 @@
     <PackageReleaseNotes>
       Added ability to reply via bound IP NAT.
     </PackageReleaseNotes>
-    <Version>1.5.1</Version>
+    <Version>1.5.2</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>UDP;framing;network;io;datagram</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>

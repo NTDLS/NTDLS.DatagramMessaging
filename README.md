@@ -24,7 +24,7 @@ private static void UdpManager_OnNotificationReceived(DmContext context, IDmNoti
 {
     if (payload is MyFirstUDPPacket myFirstUDPPacket)
     {
-        context.WriteReplyMessage(myFirstUDPPacket); //Echo the payload back to the sender.
+        context.Dispatch(myFirstUDPPacket); //Echo the payload back to the sender.
 
         Console.WriteLine($"{myFirstUDPPacket.Message}->{myFirstUDPPacket.UID}->{myFirstUDPPacket.TimeStamp}");
     }
@@ -47,7 +47,7 @@ private class HandlePackets : IDmMessageHandler
 {
     public static void ProcessFrameNotificationCallback(DmContext context, MyFirstUDPPacket payload)
     {
-        context.WriteReplyMessage(payload); //Echo the payload back to the sender.
+        context.Dispatch(payload); //Echo the payload back to the sender.
 
         Console.WriteLine($"{payload.Message}->{payload.UID}->{payload.TimeStamp}");
     }
@@ -66,7 +66,7 @@ static void Main()
 
     while (true)
     {
-        dm.WriteMessage("127.0.0.1", 1234,
+        dm.Dispatch("127.0.0.1", 1234,
             new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
 
         Thread.Sleep(10);

@@ -50,7 +50,7 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Sends a return serialized message to the remote endpoint via NAT.
         /// </summary>
-        public void WriteReplyMessage(IDmNotification payload)
+        public void Dispatch(IDmNotification payload)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
             Client.WriteNotificationFrame(Messenger, Endpoint, payload,
@@ -60,7 +60,7 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Sends a frame containing the given bytes to the remote endpoint via NAT.
         /// </summary>
-        public void WriteReplyBytes(byte[] payload)
+        public void Dispatch(byte[] payload)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
             Client.WriteBytesFrame(Messenger, Endpoint, payload,
