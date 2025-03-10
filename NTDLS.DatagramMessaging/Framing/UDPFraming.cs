@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using static NTDLS.DatagramMessaging.Framing.Defaults;
@@ -47,19 +48,12 @@ namespace NTDLS.DatagramMessaging.Framing
         /// </summary>
         /// <param name="udpClient">The UDP client to receive data from.</param>
         /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
+        /// <param name="messenger">Parent client or server instance.</param>
         /// <param name="context">Contains information about the endpoint and the connection.</param>
         /// <param name="frameBuffer">The frame buffer that will be used to receive bytes.</param>
-        /// <param name="processNotificationCallback">Optional callback to call when a notification frame is received.</param>
-        /// <param name="getSerializationProviderCallback">An optional callback to get the callback that is called to allow for custom serialization.</param>
-        /// <param name="getCompressionProviderCallback">An optional callback to get the callback that is called to allow for manipulation of bytes after they are received.</param>/// 
-        /// <param name="getEncryptionProviderCallback">An optional callback to get the callback that is called to allow for manipulation of bytes after they are received.</param>
         /// <returns>Returns true if bytes were received.</returns>
-        public static bool ReadAndProcessFrames(this UdpClient udpClient, ref IPEndPoint endpoint,
-            DmContext context, FrameBuffer frameBuffer,
-            ProcessFrameNotificationCallback processNotificationCallback,
-            GetSerializationProviderCallback? getSerializationProviderCallback,
-            GetCompressionProviderCallback? getCompressionProviderCallback,
-            GetEncryptionProviderCallback? getEncryptionProviderCallback)
+        public static bool ReadAndProcessFrames(this UdpClient udpClient, IPEndPoint endpoint,
+            IDmMessenger messenger, DmContext? context, FrameBuffer frameBuffer)
         {
             if (udpClient == null)
             {
@@ -68,31 +62,22 @@ namespace NTDLS.DatagramMessaging.Framing
 
             if (frameBuffer.ReadData(udpClient, ref endpoint))
             {
-                context.SetEndpoint(endpoint);
-
-                IDmSerializationProvider? serializationProvider = null;
-                IDmCompressionProvider? compressionProvider = null;
-                IDmCryptographyProvider? cryptographyProvider = null;
-
-                if (getSerializationProviderCallback != null)
+                if (context == null)
                 {
-                    //We use a callback because frameBuffer.ReadStream() blocks and we may have assigned an serialization provider after we called ReadAndProcessFrames().
-                    serializationProvider = getSerializationProviderCallback();
+                    //For the server, the context will be null because the endpoint is created via ReadData() when the NAT is established.
+                    //Assuming the NAT is open for 30 seconds sans any activity, we are going to cache the context with a similar expiration.
+
+                    var cacheKey = $"UPD.NAT.Context[{endpoint}]";
+                    if (Caching.CacheTryGet<DmContext>(cacheKey, out context) || context == null)
+                    {
+                        context = new DmContext(messenger, udpClient, endpoint);
+                        Caching.CacheSetThirtySeconds(cacheKey, context);
+                    }
                 }
 
-                if (getCompressionProviderCallback != null)
-                {
-                    //We use a callback because frameBuffer.ReadStream() blocks and we may have assigned an compression provider after we called ReadAndProcessFrames().
-                    compressionProvider = getCompressionProviderCallback();
-                }
+                ProcessFrameBuffer(context, frameBuffer,
+                    context.GetSerializationProvider(), context.GetCompressionProvider(), context.GetCryptographyProvider());
 
-                if (getEncryptionProviderCallback != null)
-                {
-                    //We use a callback because frameBuffer.ReadStream() blocks and we may have assigned an encryption provider after we called ReadAndProcessFrames().
-                    cryptographyProvider = getEncryptionProviderCallback();
-                }
-
-                ProcessFrameBuffer(context, frameBuffer, processNotificationCallback, serializationProvider, compressionProvider, cryptographyProvider);
                 return true;
             }
 
@@ -277,7 +262,6 @@ namespace NTDLS.DatagramMessaging.Framing
         }
 
         private static void ProcessFrameBuffer(DmContext context, FrameBuffer frameBuffer,
-            ProcessFrameNotificationCallback processNotificationCallback,
             IDmSerializationProvider? serializationProvider,
             IDmCompressionProvider? compressionProvider,
             IDmCryptographyProvider? cryptographyProvider)
@@ -354,12 +338,12 @@ namespace NTDLS.DatagramMessaging.Framing
                         var asynchronousNotificationBytes = frameNotificationBytes;
                         Task.Run(() =>
                         {
-                            processNotificationCallback(asynchronousNotificationBytes);
+                            context.Messenger.ProcessFrameNotificationByConvention(context, asynchronousNotificationBytes);
                         });
                     }
                     else
                     {
-                        processNotificationCallback(frameNotificationBytes);
+                        context.Messenger.ProcessFrameNotificationByConvention(context, frameNotificationBytes);
                     }
                 }
                 else if (framePayload is IDmNotification notification)
@@ -370,12 +354,12 @@ namespace NTDLS.DatagramMessaging.Framing
                         var asynchronousNotification = notification;
                         Task.Run(() =>
                         {
-                            processNotificationCallback(asynchronousNotification);
+                            context.Messenger.ProcessFrameNotificationByConvention(context, asynchronousNotification);
                         });
                     }
                     else
                     {
-                        processNotificationCallback(notification);
+                        context.Messenger.ProcessFrameNotificationByConvention(context, notification);
                     }
                 }
                 else

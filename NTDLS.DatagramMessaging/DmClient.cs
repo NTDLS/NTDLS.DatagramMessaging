@@ -151,7 +151,7 @@ namespace NTDLS.DatagramMessaging
             }
 
             FrameBuffer frameBuffer = new();
-            var clientEndPoint = new IPEndPoint(IPAddress.Any, listenPort);
+            var serverEndpoint = new IPEndPoint(IPAddress.Any, listenPort);
 
             _keepRunning = true;
 
@@ -161,11 +161,7 @@ namespace NTDLS.DatagramMessaging
                 {
                     try
                     {
-                        while (_keepRunning && Client.ReadAndProcessFrames(ref clientEndPoint, Context, frameBuffer,
-                            (payload) => LocalProcessFrameNotificationByConvention(Context, payload),
-                                Context.GetSerializationProvider,/*This is a delegate function call so that we can get the provider at the latest possible moment.*/
-                                Context.GetCompressionProvider,/*This is a delegate function call so that we can get the provider at the latest possible moment.*/
-                                Context.GetCryptographyProvider/*This is a delegate function call so that we can get the provider at the latest possible moment.*/))
+                        while (_keepRunning && Client.ReadAndProcessFrames(serverEndpoint, this, Context, frameBuffer))
                         {
                         }
                     }
@@ -174,17 +170,20 @@ namespace NTDLS.DatagramMessaging
             });
 
             _receiveThread.Start();
+        }
 
-            void LocalProcessFrameNotificationByConvention(DmContext context, IDmNotification payload)
+        /// <summary>
+        /// Routes inbound packets to the appropriate handler.
+        /// </summary>
+        public void ProcessFrameNotificationByConvention(DmContext context, IDmNotification payload)
+        {
+            //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnNotificationReceived() event.
+            if (ReflectionCache.RouteToNotificationHander(context, payload))
             {
-                //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnNotificationReceived() event.
-                if (ReflectionCache.RouteToNotificationHander(context, payload))
-                {
-                    return; //Notification was handled by handler routing.
-                }
-
-                OnNotificationReceived?.Invoke(context, payload);
+                return; //Notification was handled by handler routing.
             }
+
+            OnNotificationReceived?.Invoke(context, payload);
         }
 
         #region DmContext passthrough.

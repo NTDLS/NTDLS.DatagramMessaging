@@ -10,5 +10,10 @@
         /// Otherwise, notifications block other activities.
         /// </summary>
         public bool AsynchronousNotifications { get; }
+
+        /// <summary>
+        /// Routes inbound packets to the appropriate handler.
+        /// </summary>
+        public void ProcessFrameNotificationByConvention(DmContext context, IDmNotification payload);
     }
 }

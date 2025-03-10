@@ -27,19 +27,9 @@ namespace NTDLS.DatagramMessaging
         public IPEndPoint? Endpoint { get; private set; }
 
         /// <summary>
-        /// Creates a new DmContext instance for a server.
-        /// </summary>
-        public DmContext(DmServer dmServer, UdpClient client, IPEndPoint endpoint)
-        {
-            Endpoint = endpoint;
-            Messenger = dmServer;
-            Client = client;
-        }
-
-        /// <summary>
         /// Creates a new DmContext instance for a client that sends data to the given IP endpoint.
         /// </summary>
-        public DmContext(DmClient dmClient, UdpClient client, IPEndPoint? endpoint)
+        public DmContext(IDmMessenger dmClient, UdpClient client, IPEndPoint? endpoint)
         {
             Endpoint = endpoint;
             Messenger = dmClient;
