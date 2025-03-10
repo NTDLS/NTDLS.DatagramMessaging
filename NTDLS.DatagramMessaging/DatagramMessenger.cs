@@ -285,13 +285,13 @@ namespace NTDLS.DatagramMessaging
 
             _receiveThread = new Thread(o =>
             {
-                var context = new DmContext(this, Client, Thread.CurrentThread);
+                var context = new DmContext(this, Client, ref clientEndPoint, Thread.CurrentThread);
 
                 while (_keepRunning)
                 {
                     try
                     {
-                        while (_keepRunning && Client.ReadAndProcessFrames(ref clientEndPoint, this, frameBuffer,
+                        while (_keepRunning && Client.ReadAndProcessFrames(ref clientEndPoint, this, context, frameBuffer,
                             (payload) => LocalProcessFrameNotificationByConvention(context, payload),
                                 GetSerializationProvider,/*This is a delegate function call so that we can get the provider at the latest possible moment.*/
                                 GetCompressionProvider,/*This is a delegate function call so that we can get the provider at the latest possible moment.*/

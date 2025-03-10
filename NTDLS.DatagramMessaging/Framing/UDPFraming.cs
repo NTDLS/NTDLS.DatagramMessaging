@@ -46,15 +46,17 @@ namespace NTDLS.DatagramMessaging.Framing
         /// Waits on bytes to become available, reads those bytes then parses the available frames (if any) and calls the appropriate callbacks.
         /// </summary>
         /// <param name="udpClient">The UDP client to receive data from.</param>
-        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
         /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
+        /// <param name="messenger">Contains the parent instance of DatagramMessenger.</param>
+        /// <param name="context">Contains information about the endpoint and the connection.</param>
         /// <param name="frameBuffer">The frame buffer that will be used to receive bytes.</param>
         /// <param name="processNotificationCallback">Optional callback to call when a notification frame is received.</param>
         /// <param name="getSerializationProviderCallback">An optional callback to get the callback that is called to allow for custom serialization.</param>
         /// <param name="getCompressionProviderCallback">An optional callback to get the callback that is called to allow for manipulation of bytes after they are received.</param>/// 
         /// <param name="getEncryptionProviderCallback">An optional callback to get the callback that is called to allow for manipulation of bytes after they are received.</param>
         /// <returns>Returns true if bytes were received.</returns>
-        public static bool ReadAndProcessFrames(this UdpClient udpClient, ref IPEndPoint endpoint, DatagramMessenger messenger, FrameBuffer frameBuffer,
+        public static bool ReadAndProcessFrames(this UdpClient udpClient, ref IPEndPoint endpoint,
+            DatagramMessenger messenger, DmContext context, FrameBuffer frameBuffer,
             ProcessFrameNotificationCallback processNotificationCallback,
             GetSerializationProviderCallback? getSerializationProviderCallback,
             GetCompressionProviderCallback? getCompressionProviderCallback,
@@ -67,6 +69,8 @@ namespace NTDLS.DatagramMessaging.Framing
 
             if (frameBuffer.ReadData(udpClient, ref endpoint))
             {
+                context.SetEndpoint(endpoint);
+
                 IDmSerializationProvider? serializationProvider = null;
                 IDmCompressionProvider? compressionProvider = null;
                 IDmCryptographyProvider? cryptographyProvider = null;
@@ -100,7 +104,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// Sends a one-time fire-and-forget notification.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains the parent instance of DatagramMessenger.</param>
         /// <param name="framePayload">The notification payload that will be sent.</param>
         /// <param name="hostOrIPAddress">Host or IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
@@ -119,7 +123,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// Sends a one-time fire-and-forget notification.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains the parent instance of DatagramMessenger.</param>
         /// <param name="framePayload">The notification payload that will be sent.</param>
         /// <param name="ipAddress">IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
@@ -138,7 +142,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// Sends a one-time fire-and-forget notification.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains the parent instance of DatagramMessenger.</param>
         /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
         /// <param name="framePayload">The notification payload that will be sent.</param>
         /// <param name="serializationProvider">An optional callback that is called to allow for custom serialization.</param>
@@ -157,7 +161,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// When a raw byte array is use, all json serialization is skipped and checks for this payload type are prioritized for performance.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains the parent instance of DatagramMessenger.</param>
         /// <param name="framePayload">The bytes will make up the body of the frame which is written.</param>
         /// <param name="hostOrIPAddress">Host or IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
@@ -182,7 +186,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// When a raw byte array is use, all json serialization is skipped and checks for this payload type are prioritized for performance.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains the parent instance of DatagramMessenger.</param>
         /// <param name="framePayload">The bytes will make up the body of the frame which is written.</param>
         /// <param name="ipAddress">IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
@@ -207,7 +211,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// When a raw byte array is use, all json serialization is skipped and checks for this payload type are prioritized for performance.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="messenger">Contains information about the endpoint and the connection.</param>
+        /// <param name="messenger">Contains the parent instance of DatagramMessenger.</param>
         /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
         /// <param name="framePayload">The bytes will make up the body of the frame which is written.</param>
         /// <param name="serializationProvider">An optional callback that is called to allow for custom serialization.</param>

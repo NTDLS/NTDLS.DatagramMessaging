@@ -15,10 +15,9 @@
     <RepositoryUrl>https://github.com/NTDLS/NTDLS.UDPPacketFraming</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageReleaseNotes>
-      Added optional encryption, serialization and compression providers.
-      Generic type handlers.
+      Added ability to reply via bound IP NAT.
     </PackageReleaseNotes>
-    <Version>1.4.0</Version>
+    <Version>1.5.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>UDP;framing;network;io;datagram</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
