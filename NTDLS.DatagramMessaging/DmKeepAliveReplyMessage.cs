@@ -3,10 +3,10 @@
 namespace NTDLS.DatagramMessaging
 {
     /// <summary>
-    /// Payload to send for keep-alive from client to server.
+    /// Payload to send in response to a keep-alive from server to client.
     /// This is discarded by the receive thread.
     /// </summary>
-    public class DmKeepAliveMessage
+    public class DmKeepAliveReplyMessage
         : IDmNotification, IDmKeepAliveMessage
     {
         /// <summary>

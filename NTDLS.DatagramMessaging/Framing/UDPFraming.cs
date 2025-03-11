@@ -43,13 +43,12 @@ namespace NTDLS.DatagramMessaging.Framing
                 if (context == null)
                 {
                     //For the server, the context will be null because the endpoint is created via ReadData() when the NAT is established.
-                    //Assuming the NAT is open for 30 seconds sans any activity, we are going to cache the context with a similar expiration.
-
+                    //Assuming the NAT is open for 30 seconds sans any activity, we are going to cache the context with a ~similar expiration.
                     var cacheKey = $"UPD.NAT.Context[{endpoint}]";
-                    if (Caching.CacheTryGet<DmContext>(cacheKey, out context) || context == null)
+                    if (!Caching.TryGet(cacheKey, out context) || context == null)
                     {
                         context = new DmContext(messenger, udpClient, endpoint);
-                        Caching.CacheSetThirtySeconds(cacheKey, context);
+                        Caching.SetTenMinutes(cacheKey, context);
                     }
                 }
 
@@ -326,8 +325,20 @@ namespace NTDLS.DatagramMessaging.Framing
                 }
                 else if (framePayload is DmKeepAliveMessage keepAliveMessage)
                 {
-                    //Discard keep-alive message.
-                    context.Messenger.InvokeOnKeepAlive(context, keepAliveMessage);
+                    Task.Run(() =>
+                    {
+                        //Discard keep-alive message.
+                        context.Messenger.InvokeOnKeepAlive(context, keepAliveMessage);
+                        context.Dispatch(new DmKeepAliveReplyMessage()); //Reply to the keep-alive request.
+                    });
+                }
+                else if (framePayload is DmKeepAliveReplyMessage keepAliveReply)
+                {
+                    Task.Run(() =>
+                    {
+                        //Discard keep-alive message.
+                        context.Messenger.InvokeOnKeepAlive(context, keepAliveReply);
+                    });
                 }
                 else if (framePayload is IDmNotification notification)
                 {

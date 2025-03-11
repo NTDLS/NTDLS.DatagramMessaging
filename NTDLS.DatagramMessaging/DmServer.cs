@@ -42,14 +42,14 @@ namespace NTDLS.DatagramMessaging
         /// </summary>
         /// <param name="context">Information about the connection.</param>
         /// <param name="keepAlive">Instance of the keep-alive class that was received.</param>
-        public delegate void KeepAliveReceivedEvent(DmContext context, DmKeepAliveMessage keepAlive);
+        public delegate void KeepAliveReceivedEvent(DmContext context, IDmKeepAliveMessage keepAlive);
 
         /// <summary>
         /// Event fired when a keep-alive notification is received.
         /// </summary>
         /// <param name="context">Information about the connection.</param>
         /// <param name="keepAlive">Instance of the keep-alive class that was received.</param>
-        public void InvokeOnKeepAlive(DmContext context, DmKeepAliveMessage keepAlive)
+        public void InvokeOnKeepAlive(DmContext context, IDmKeepAliveMessage keepAlive)
             => OnKeepAliveReceived?.Invoke(context, keepAlive);
 
         #endregion

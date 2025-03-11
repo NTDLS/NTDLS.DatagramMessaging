@@ -20,7 +20,6 @@ namespace NTDLS.DatagramMessaging
         /// </summary>
         public UdpClient Client { get; private set; }
 
-
         /// <summary>
         /// The IP endpoint which can be used to reply to the message.
         /// </summary>

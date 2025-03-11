@@ -13,7 +13,7 @@ namespace NTDLS.DatagramMessaging.Internal
 
         public static string GetAssemblyQualifiedTypeName(Type type)
         {
-            if (Caching.CacheTryGet<string>($"AQT:{type}", out var objectTypeName) && objectTypeName != null)
+            if (Caching.TryGet<string>($"AQT:{type}", out var objectTypeName) && objectTypeName != null)
             {
                 return objectTypeName;
             }
@@ -39,7 +39,7 @@ namespace NTDLS.DatagramMessaging.Internal
             objectTypeName = CompiledRegEx.TypeTagsRegex().Replace(assemblyQualifiedName, string.Empty);
             objectTypeName = CompiledRegEx.TypeCleanupRegex().Replace(objectTypeName, ", ").Trim();
 
-            Caching.CacheSetOneMinute(type, objectTypeName);
+            Caching.SetOneMinute(type, objectTypeName);
 
             return objectTypeName;
         }
@@ -51,7 +51,7 @@ namespace NTDLS.DatagramMessaging.Internal
 
         public static string GetAssemblyQualifiedTypeNameWithClosedGenerics(Type type)
         {
-            if (Caching.CacheTryGet<string>($"AQT_WCT:{type}", out var objectTypeName) && objectTypeName != null)
+            if (Caching.TryGet<string>($"AQT_WCT:{type}", out var objectTypeName) && objectTypeName != null)
             {
                 return objectTypeName;
             }
@@ -83,7 +83,7 @@ namespace NTDLS.DatagramMessaging.Internal
             objectTypeName = CompiledRegEx.TypeTagsRegex().Replace(assemblyQualifiedName, string.Empty);
             objectTypeName = CompiledRegEx.TypeCleanupRegex().Replace(objectTypeName, ", ").Trim();
 
-            Caching.CacheSetOneMinute(type, objectTypeName);
+            Caching.SetOneMinute(type, objectTypeName);
 
             return objectTypeName;
         }

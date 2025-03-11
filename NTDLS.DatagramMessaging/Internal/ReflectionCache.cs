@@ -96,7 +96,7 @@ namespace NTDLS.DatagramMessaging.Internal
         {
             var payloadType = payload.GetType();
 
-            if (Caching.CacheTryGet<MethodInfo>(payloadType, out var cached) && cached != null)
+            if (Caching.TryGet<MethodInfo>(payloadType, out var cached) && cached != null)
             {
                 return cached;
             }
@@ -127,7 +127,7 @@ namespace NTDLS.DatagramMessaging.Internal
                 var genericMethod = cachedMethod.Method.MakeGenericMethod(genericTypeArguments)
                     ?? throw new Exception("The generic assembly type could not be instantiated.");
 
-                Caching.CacheSetOneMinute(payloadType, genericMethod);
+                Caching.SetOneMinute(payloadType, genericMethod);
 
                 return genericMethod;
             }
