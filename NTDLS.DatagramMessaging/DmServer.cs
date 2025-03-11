@@ -46,14 +46,14 @@ namespace NTDLS.DatagramMessaging
         /// </summary>
         /// <param name="context">Information about the connection.</param>
         /// <param name="keepAlive">Instance of the keep-alive class that was received.</param>
-        public delegate void KeepAliveReceivedHandler(DmContext context, IDmKeepAliveMessage keepAlive);
+        public delegate void KeepAliveReceivedHandler(DmContext context, IDmKeepAliveDatagram keepAlive);
 
         /// <summary>
         /// Event fired when a keep-alive datagram is received.
         /// </summary>
         /// <param name="context">Information about the connection.</param>
         /// <param name="keepAlive">Instance of the keep-alive class that was received.</param>
-        public void InvokeOnKeepAlive(DmContext context, IDmKeepAliveMessage keepAlive)
+        public void InvokeOnKeepAlive(DmContext context, IDmKeepAliveDatagram keepAlive)
             => OnKeepAliveReceived?.Invoke(context, keepAlive);
 
         #endregion
@@ -118,7 +118,7 @@ namespace NTDLS.DatagramMessaging
         /// </summary>
         /// <param name="listenPort"></param>
         /// <param name="handlerClass"></param>
-        public DmServer(int listenPort, IDmMessageHandler handlerClass)
+        public DmServer(int listenPort, IDmDatagramHandler handlerClass)
         {
             Client = new UdpClient(listenPort);
             AddHandler(handlerClass);
@@ -165,7 +165,7 @@ namespace NTDLS.DatagramMessaging
         /// Adds a class that contains datagram handler functions.
         /// </summary>
         /// <param name="handler"></param>
-        public void AddHandler(IDmMessageHandler handler)
+        public void AddHandler(IDmDatagramHandler handler)
         {
             try
             {

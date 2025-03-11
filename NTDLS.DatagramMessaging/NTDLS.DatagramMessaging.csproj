@@ -15,9 +15,9 @@
     <RepositoryUrl>https://github.com/NTDLS/NTDLS.UDPPacketFraming</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageReleaseNotes>
-      Added keep-alive eventing.
+      Refactoring.
     </PackageReleaseNotes>
-    <Version>1.7.0</Version>
+    <Version>1.7.1</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>UDP;framing;network;io;datagram</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>

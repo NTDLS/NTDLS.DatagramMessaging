@@ -349,7 +349,7 @@ namespace NTDLS.DatagramMessaging.Framing
 
                     var datagram = ExtractFrameDatagram(context, frameBody);
 
-                    if (datagram is DmDatagramBytes dmDatagramBytes)
+                    if (datagram is DmBytesDatagram dmDatagramBytes)
                     {
                         if (context.Messenger.AsynchronousDatagramProcessing)
                         {
@@ -365,16 +365,16 @@ namespace NTDLS.DatagramMessaging.Framing
                             context.Messenger.ProcessFrameDatagramByConvention(context, dmDatagramBytes);
                         }
                     }
-                    else if (datagram is DmKeepAliveMessage dmKeepAliveMessage)
+                    else if (datagram is DmKeepAliveDatagram dmKeepAliveMessage)
                     {
                         Task.Run(() =>
                         {
                             //Discard keep-alive message.
                             context.Messenger.InvokeOnKeepAlive(context, dmKeepAliveMessage);
-                            context.Dispatch(new DmKeepAliveReplyMessage()); //Reply to the keep-alive request.
+                            context.Dispatch(new DmKeepAliveReplyDatagram()); //Reply to the keep-alive request.
                         });
                     }
-                    else if (datagram is DmKeepAliveReplyMessage dmKeepAliveReply)
+                    else if (datagram is DmKeepAliveReplyDatagram dmKeepAliveReply)
                     {
                         Task.Run(() =>
                         {
@@ -422,7 +422,7 @@ namespace NTDLS.DatagramMessaging.Framing
             {
                 if (frame.ObjectType == "byte[]")
                 {
-                    return new DmDatagramBytes(frame.Bytes);
+                    return new DmBytesDatagram(frame.Bytes);
                 }
 
                 string cacheKey = $"{frame.ObjectType}";

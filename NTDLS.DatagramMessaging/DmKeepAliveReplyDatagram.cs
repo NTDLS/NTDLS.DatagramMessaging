@@ -6,8 +6,8 @@ namespace NTDLS.DatagramMessaging
     /// Datagram to send in response to a keep-alive from server to client.
     /// This is discarded by the receive thread.
     /// </summary>
-    public class DmKeepAliveReplyMessage
-        : IDmDatagram, IDmKeepAliveMessage
+    public class DmKeepAliveReplyDatagram
+        : IDmDatagram, IDmKeepAliveDatagram
     {
         /// <summary>
         /// The date-time that the keep-alive packet was sent.

@@ -38,7 +38,7 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Used to invoke the OnKeepAlive event on the server and client, if its hooked.
         /// </summary>
-        void InvokeOnKeepAlive(DmContext context, IDmKeepAliveMessage keepAlive);
+        void InvokeOnKeepAlive(DmContext context, IDmKeepAliveDatagram keepAlive);
 
         /// <summary>
         /// Used to invoke the OnException event on the server and client, if its hooked.

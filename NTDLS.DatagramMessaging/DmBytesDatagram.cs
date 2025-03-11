@@ -4,7 +4,7 @@
     /// Used to send a datagram of a raw byte array. Used by WriteBytesFrame() and handled in processDatagramCallback().
     /// When a raw byte array is used, all json serialization is skipped and checks for this datagram type are prioritized for performance.
     /// </summary>
-    public class DmDatagramBytes
+    public class DmBytesDatagram
         : IDmDatagram
     {
         /// <summary>
@@ -15,7 +15,7 @@
         /// <summary>
         /// Instantiates a new datagram from a byte array.
         /// </summary>
-        public DmDatagramBytes(byte[] bytes)
+        public DmBytesDatagram(byte[] bytes)
         {
             Bytes = bytes;
         }

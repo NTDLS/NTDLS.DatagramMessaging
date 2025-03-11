@@ -42,7 +42,7 @@ namespace Client
 
         private static void UdpManager_OnDatagramReceived(DmContext context, IDmDatagram datagram)
         {
-            if (datagram is DmDatagramBytes bytes)
+            if (datagram is DmBytesDatagram bytes)
             {
                 Console.WriteLine($"Received {bytes.Bytes.Length} bytes.");
             }

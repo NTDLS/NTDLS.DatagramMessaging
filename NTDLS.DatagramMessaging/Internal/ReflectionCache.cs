@@ -52,9 +52,9 @@ namespace NTDLS.DatagramMessaging.Internal
         }
 
         private readonly Dictionary<string, CachedMethod> _handlerMethods = new();
-        private readonly Dictionary<Type, IDmMessageHandler> _handlerInstances = new();
+        private readonly Dictionary<Type, IDmDatagramHandler> _handlerInstances = new();
 
-        internal void AddInstance(IDmMessageHandler handler)
+        internal void AddInstance(IDmDatagramHandler handler)
         {
             _handlerInstances.Add(handler.GetType(), handler);
 
@@ -140,7 +140,7 @@ namespace NTDLS.DatagramMessaging.Internal
         /// <summary>
         /// Gets the handler class instance from the pre-loaded handler instance cache.
         /// </summary>
-        private bool GetCachedInstance(CachedMethod cachedMethod, [NotNullWhen(true)] out IDmMessageHandler? cachedInstance)
+        private bool GetCachedInstance(CachedMethod cachedMethod, [NotNullWhen(true)] out IDmDatagramHandler? cachedInstance)
         {
             if (cachedMethod.Method.DeclaringType == null)
             {
@@ -153,7 +153,7 @@ namespace NTDLS.DatagramMessaging.Internal
                 return true;
             }
 
-            cachedInstance = Activator.CreateInstance(cachedMethod.Method.DeclaringType) as IDmMessageHandler;
+            cachedInstance = Activator.CreateInstance(cachedMethod.Method.DeclaringType) as IDmDatagramHandler;
             if (cachedInstance == null)
             {
                 return false;
@@ -186,7 +186,7 @@ namespace NTDLS.DatagramMessaging.Internal
         /// <summary>
         /// Loads the handler functions from the given handler class.
         /// </summary>
-        private void LoadConventionBasedHandlerMethods(IDmMessageHandler handlerClass)
+        private void LoadConventionBasedHandlerMethods(IDmDatagramHandler handlerClass)
         {
             foreach (var method in handlerClass.GetType().GetMethods())
             {

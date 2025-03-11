@@ -22,9 +22,9 @@ namespace ServerByConvention
             Console.WriteLine(ex.GetBaseException().Message);
         }
 
-        private class HandlePackets : IDmMessageHandler
+        private class HandlePackets : IDmDatagramHandler
         {
-            public static void DatagramHandler(DmContext context, DmDatagramBytes datagram)
+            public static void DatagramHandler(DmContext context, DmBytesDatagram datagram)
             {
                 context.Dispatch(datagram.Bytes); //Echo the datagram back to the sender.
 

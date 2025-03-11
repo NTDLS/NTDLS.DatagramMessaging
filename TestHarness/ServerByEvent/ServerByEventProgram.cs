@@ -24,7 +24,7 @@ namespace ServerByEvent
 
         private static void UdpManager_OnDatagramReceived(DmContext context, IDmDatagram datagram)
         {
-            if (datagram is DmDatagramBytes bytes)
+            if (datagram is DmBytesDatagram bytes)
             {
                 context.Dispatch(bytes.Bytes); //Echo the datagram back to the sender.
 
