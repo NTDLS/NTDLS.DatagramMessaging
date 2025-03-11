@@ -3,7 +3,7 @@ using Shared;
 
 namespace ServerByEvent
 {
-    internal class ServerProgram
+    internal class ServerByEventProgram
     {
         static void Main()
         {

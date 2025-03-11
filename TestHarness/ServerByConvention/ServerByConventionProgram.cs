@@ -3,7 +3,7 @@ using Shared;
 
 namespace ServerByConvention
 {
-    internal class Program
+    internal class ServerByConventionProgram
     {
         static void Main()
         {
@@ -24,14 +24,14 @@ namespace ServerByConvention
 
         private class HandlePackets : IDmMessageHandler
         {
-            public static void ProcessFrameDatagramCallback(DmContext context, DmDatagramBytes datagram)
+            public static void DatagramHandler(DmContext context, DmDatagramBytes datagram)
             {
                 context.Dispatch(datagram.Bytes); //Echo the datagram back to the sender.
 
                 Console.WriteLine($"Received {datagram.Bytes.Length} bytes.");
             }
 
-            public static void ProcessFrameDatagramCallback(DmContext context, MyFirstUDPPacket datagram)
+            public static void DatagramHandler(DmContext context, MyFirstUDPPacket datagram)
             {
                 context.Dispatch(datagram); //Echo the datagram back to the sender.
                 Console.WriteLine($"{datagram.Message}->{datagram.UID}->{datagram.TimeStamp}");

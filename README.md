@@ -14,6 +14,9 @@ static void Main()
 {
     var dmServer = new DmServer(1234);
 
+    //Typically a good idea to hook the exception handler.
+    //dmServer.OnException += DmServer_OnException;
+
     dmServer.OnDatagramReceived += UdpManager_OnDatagramReceived;
 
     Console.ReadLine();
@@ -26,7 +29,6 @@ private static void UdpManager_OnDatagramReceived(DmContext context, IDmDatagram
     if (datagram is MyFirstUDPPacket myFirstUDPPacket)
     {
         context.Dispatch(myFirstUDPPacket); //Echo the datagram back to the sender.
-
         Console.WriteLine($"{myFirstUDPPacket.Message}->{myFirstUDPPacket.UID}->{myFirstUDPPacket.TimeStamp}");
     }
 }
@@ -41,6 +43,9 @@ static void Main()
 {
     var dmServer = new DmServer(1234);
 
+    //Typically a good idea to hook the exception handler.
+    //dmServer.OnException += DmServer_OnException;
+
     dmServer.AddHandler(new HandlePackets());
 
     Console.ReadLine();
@@ -50,11 +55,13 @@ static void Main()
 
 private class HandlePackets : IDmMessageHandler
 {
-    public static void ProcessFrameDatagramCallback(DmContext context, MyFirstUDPPacket datagram)
+    private class HandlePackets : IDmMessageHandler
     {
-        context.Dispatch(datagram); //Echo the datagram back to the sender.
-
-        Console.WriteLine($"{datagram.Message}->{datagram.UID}->{datagram.TimeStamp}");
+        public static void DatagramHandler(DmContext context, MyFirstUDPPacket datagram)
+        {
+            context.Dispatch(datagram); //Echo the datagram back to the sender.
+            Console.WriteLine($"{datagram.Message}->{datagram.UID}->{datagram.TimeStamp}");
+        }
     }
 }
 ```
@@ -66,6 +73,9 @@ private class HandlePackets : IDmMessageHandler
 static void Main()
 {
     var dmClient = new DmClient("127.0.0.1", 1234);
+
+    //Typically a good idea to hook the exception handler.
+    //dmClient.OnException += DmServer_OnException;
 
     int packetNumber = 0;
 
