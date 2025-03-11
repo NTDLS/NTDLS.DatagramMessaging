@@ -207,7 +207,7 @@ namespace NTDLS.DatagramMessaging
                                 {
                                     Dispatch(new DmKeepAliveMessage());
                                 }
-                                catch(Exception ex)
+                                catch (Exception ex)
                                 {
                                     OnException?.Invoke(Context, ex);
                                 }

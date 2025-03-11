@@ -140,8 +140,8 @@ namespace NTDLS.DatagramMessaging
         {
             try
             {
-            Client = new UdpClient(listenPort);
-            ListenAsync(listenPort);
+                Client = new UdpClient(listenPort);
+                ListenAsync(listenPort);
             }
             catch (Exception ex)
             {
@@ -169,7 +169,7 @@ namespace NTDLS.DatagramMessaging
         {
             try
             {
-            ReflectionCache.AddInstance(handler);
+                ReflectionCache.AddInstance(handler);
             }
             catch (Exception ex)
             {
@@ -183,16 +183,17 @@ namespace NTDLS.DatagramMessaging
         /// </summary>
         public void Stop()
         {
-            try{
-            if (_keepReceiveRunning)
+            try
             {
-                try { Client?.Close(); } catch { }
-                try { Client?.Dispose(); } catch { }
+                if (_keepReceiveRunning)
+                {
+                    try { Client?.Close(); } catch { }
+                    try { Client?.Dispose(); } catch { }
 
-                Client = null;
+                    Client = null;
 
-                _keepReceiveRunning = false;
-                _receiveThread?.Join();
+                    _keepReceiveRunning = false;
+                    _receiveThread?.Join();
                 }
             }
             catch (Exception ex)
@@ -235,35 +236,36 @@ namespace NTDLS.DatagramMessaging
 
         private void ListenAsync(int listenPort)
         {
-            try{
-            if (Client == null)
+            try
             {
-                throw new Exception("The UDP client has not been initialized.");
-            }
-
-            FrameBuffer frameBuffer = new();
-            var serverEndpoint = new IPEndPoint(IPAddress.Any, listenPort);
-
-            _keepReceiveRunning = true;
-
-            _receiveThread = new Thread(o =>
-            {
-                while (_keepReceiveRunning)
+                if (Client == null)
                 {
-                    try
+                    throw new Exception("The UDP client has not been initialized.");
+                }
+
+                FrameBuffer frameBuffer = new();
+                var serverEndpoint = new IPEndPoint(IPAddress.Any, listenPort);
+
+                _keepReceiveRunning = true;
+
+                _receiveThread = new Thread(o =>
+                {
+                    while (_keepReceiveRunning)
                     {
-                        while (_keepReceiveRunning && Client.ReadAndProcessFrames(serverEndpoint, this, null, frameBuffer))
+                        try
                         {
+                            while (_keepReceiveRunning && Client.ReadAndProcessFrames(serverEndpoint, this, null, frameBuffer))
+                            {
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            OnException?.Invoke(null, ex);
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        OnException?.Invoke(null, ex);
-                    }
-                }
-            });
+                });
 
-            _receiveThread.Start();
+                _receiveThread.Start();
             }
             catch (Exception ex)
             {
@@ -279,13 +281,13 @@ namespace NTDLS.DatagramMessaging
         {
             try
             {
-            //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnNotificationReceived() event.
-            if (ReflectionCache.RouteToNotificationHander(context, payload))
-            {
-                return; //Notification was handled by handler routing.
-            }
+                //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnNotificationReceived() event.
+                if (ReflectionCache.RouteToNotificationHander(context, payload))
+                {
+                    return; //Notification was handled by handler routing.
+                }
 
-            OnNotificationReceived?.Invoke(context, payload);
+                OnNotificationReceived?.Invoke(context, payload);
             }
             catch (Exception ex)
             {
