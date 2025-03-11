@@ -3,7 +3,7 @@ using System;
 
 namespace NTDLS.DatagramMessaging
 {
-    internal static class Caching
+    internal static class DmCaching
     {
         internal static IMemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
         internal static MemoryCacheEntryOptions _slidingOneMinute = new() { SlidingExpiration = TimeSpan.FromMinutes(1) };

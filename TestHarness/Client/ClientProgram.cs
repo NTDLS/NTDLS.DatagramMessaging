@@ -9,7 +9,8 @@ namespace Client
         {
             var dmClient = new DmClient("127.0.0.1", 1234);
 
-            dmClient.OnNotificationReceived += UdpManager_OnNotificationReceived;
+            dmClient.OnDatagramReceived += UdpManager_OnDatagramReceived;
+            dmClient.OnException += DmClient_OnException;
 
             var rand = new Random();
 
@@ -34,9 +35,14 @@ namespace Client
             dmClient.Stop();
         }
 
-        private static void UdpManager_OnNotificationReceived(DmContext context, IDmDatagram payload)
+        private static void DmClient_OnException(DmContext? context, Exception ex)
         {
-            if (payload is DmNotificationBytes bytes)
+            Console.WriteLine(ex.GetBaseException().Message);
+        }
+
+        private static void UdpManager_OnDatagramReceived(DmContext context, IDmDatagram payload)
+        {
+            if (payload is DmDatagramBytes bytes)
             {
                 Console.WriteLine($"Received {bytes.Bytes.Length} bytes.");
             }

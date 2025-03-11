@@ -18,38 +18,38 @@ namespace NTDLS.DatagramMessaging
         private bool _keepReceiveRunning = false;
         private Thread? _receiveThread = null;
 
-        #region Event: OnNotificationReceived.
+        #region Event: OnDatagramReceived.
 
         /// <summary>
-        /// Event fired when a notification is received from a client.
+        /// Event fired when a datagram is received from a client.
         /// </summary>
-        public event NotificationReceivedHandler? OnNotificationReceived;
+        public event DatagramReceivedHandler? OnDatagramReceived;
 
         /// <summary>
-        /// Event fired when a notification is received from a client.
+        /// Event fired when a datagram is received from a client.
         /// </summary>
         /// <param name="context">Information about the connection.</param>
-        /// <param name="notification"></param>
-        public delegate void NotificationReceivedHandler(DmContext context, IDmDatagram notification);
+        /// <param name="datagram"></param>
+        public delegate void DatagramReceivedHandler(DmContext context, IDmDatagram datagram);
 
         #endregion
 
         #region Event: OnKeepAliveReceived.
 
         /// <summary>
-        /// Event fired when a keep-alive notification is received.
+        /// Event fired when a keep-alive datagram is received.
         /// </summary>
         public event KeepAliveReceivedHandler? OnKeepAliveReceived;
 
         /// <summary>
-        /// Event fired when a keep-alive notification is received.
+        /// Event fired when a keep-alive datagram is received.
         /// </summary>
         /// <param name="context">Information about the connection.</param>
         /// <param name="keepAlive">Instance of the keep-alive class that was received.</param>
         public delegate void KeepAliveReceivedHandler(DmContext context, IDmKeepAliveMessage keepAlive);
 
         /// <summary>
-        /// Event fired when a keep-alive notification is received.
+        /// Event fired when a keep-alive datagram is received.
         /// </summary>
         /// <param name="context">Information about the connection.</param>
         /// <param name="keepAlive">Instance of the keep-alive class that was received.</param>
@@ -61,19 +61,19 @@ namespace NTDLS.DatagramMessaging
         #region Event: OnException
 
         /// <summary>
-        /// Event fired when a keep-alive notification is received.
+        /// Event fired when a keep-alive datagram is received.
         /// </summary>
         public event OnExceptionHander? OnException;
 
         /// <summary>
-        /// Event fired when a keep-alive notification is received.
+        /// Event fired when a keep-alive datagram is received.
         /// </summary>
         /// <param name="context">Information about the connection.</param>
         /// <param name="ex">information about the exception that occurred.</param>
         public delegate void OnExceptionHander(DmContext? context, Exception ex);
 
         /// <summary>
-        /// Event fired when a keep-alive notification is received.
+        /// Event fired when a keep-alive datagram is received.
         /// </summary>
         /// <param name="context">Information about the connection.</param>
         /// <param name="ex">information about the exception that occurred.</param>
@@ -88,10 +88,10 @@ namespace NTDLS.DatagramMessaging
         public bool IsReceiveRunning { get => _keepReceiveRunning; }
 
         /// <summary>
-        /// When true, notifications are queued in a thread pool.
-        /// Otherwise, notifications block other activities.
+        /// When true, datagrams are queued in a thread pool.
+        /// Otherwise, datagrams block other activities.
         /// </summary>
-        public bool AsynchronousNotifications { get; set; } = true;
+        public bool AsynchronousDatagramProcessing { get; set; } = true;
 
         /// <summary>
         /// Underlying native UDP client.
@@ -105,7 +105,7 @@ namespace NTDLS.DatagramMessaging
 
         /// <summary>
         /// Starts a new managed UDP "connection" that can send and receive.
-        /// You must also call AddHandler() or hook the OnNotificationReceivedEvent so that messages can be handled.
+        /// You must also call AddHandler() or hook the OnDatagramReceivedEvent so that messages can be handled.
         /// </summary>
         public DmServer(int listenPort)
         {
@@ -134,7 +134,7 @@ namespace NTDLS.DatagramMessaging
 
         /// <summary>
         /// Starts a new managed UDP "connection" that can send and receive.
-        /// You must also call AddHandler() or hook the OnNotificationReceivedEvent so that messages can be handled.
+        /// You must also call AddHandler() or hook the OnDatagramReceivedEvent so that messages can be handled.
         /// </summary>
         public void Start(int listenPort)
         {
@@ -162,7 +162,7 @@ namespace NTDLS.DatagramMessaging
         }
 
         /// <summary>
-        /// Adds a class that contains notification handler functions.
+        /// Adds a class that contains datagram handler functions.
         /// </summary>
         /// <param name="handler"></param>
         public void AddHandler(IDmMessageHandler handler)
@@ -277,17 +277,17 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Routes inbound packets to the appropriate handler.
         /// </summary>
-        public void ProcessFrameNotificationByConvention(DmContext context, IDmDatagram payload)
+        public void ProcessFrameDatagramByConvention(DmContext context, IDmDatagram payload)
         {
             try
             {
-                //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnNotificationReceived() event.
-                if (ReflectionCache.RouteToNotificationHander(context, payload))
+                //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnDatagramReceived() event.
+                if (ReflectionCache.RouteToDatagramHander(context, payload))
                 {
-                    return; //Notification was handled by handler routing.
+                    return; //Datagram was handled by handler routing.
                 }
 
-                OnNotificationReceived?.Invoke(context, payload);
+                OnDatagramReceived?.Invoke(context, payload);
             }
             catch (Exception ex)
             {

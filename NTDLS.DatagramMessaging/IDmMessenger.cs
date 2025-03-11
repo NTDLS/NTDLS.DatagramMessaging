@@ -10,15 +10,15 @@ namespace NTDLS.DatagramMessaging
     public interface IDmMessenger
     {
         /// <summary>
-        /// When true, notifications are queued in a thread pool.
-        /// Otherwise, notifications block other activities.
+        /// Whether or not received datagrams are processed in a separate thread.
+        /// Otherwise, datagram processing blocks other activities.
         /// </summary>
-        bool AsynchronousNotifications { get; }
+        bool AsynchronousDatagramProcessing { get; }
 
         /// <summary>
         /// Routes inbound packets to the appropriate handler.
         /// </summary>
-        void ProcessFrameNotificationByConvention(DmContext context, IDmDatagram payload);
+        void ProcessFrameDatagramByConvention(DmContext context, IDmDatagram payload);
 
         /// <summary>
         /// Denotes whether the receive thread is active.

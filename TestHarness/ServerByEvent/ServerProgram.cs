@@ -9,22 +9,28 @@ namespace ServerByEvent
         {
             var dmServer = new DmServer(1234);
 
-            dmServer.OnNotificationReceived += UdpManager_OnNotificationReceived;
+            dmServer.OnDatagramReceived += UdpManager_OnDatagramReceived;
+            dmServer.OnException += DmServer_OnException;
 
             Console.ReadLine();
 
             dmServer.Stop();
         }
 
-        private static void UdpManager_OnNotificationReceived(DmContext context, IDmDatagram payload)
+        private static void DmServer_OnException(DmContext? context, Exception ex)
         {
-            if (payload is DmNotificationBytes bytes)
+            Console.WriteLine(ex.GetBaseException().Message);
+        }
+
+        private static void UdpManager_OnDatagramReceived(DmContext context, IDmDatagram datagram)
+        {
+            if (datagram is DmDatagramBytes bytes)
             {
                 context.Dispatch(bytes.Bytes); //Echo the payload back to the sender.
 
                 Console.WriteLine($"Received {bytes.Bytes.Length} bytes.");
             }
-            else if (payload is MyFirstUDPPacket myFirstUDPPacket)
+            else if (datagram is MyFirstUDPPacket myFirstUDPPacket)
             {
                 context.Dispatch(myFirstUDPPacket); //Echo the payload back to the sender.
 

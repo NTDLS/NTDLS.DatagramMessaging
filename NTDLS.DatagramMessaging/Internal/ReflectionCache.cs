@@ -62,25 +62,25 @@ namespace NTDLS.DatagramMessaging.Internal
         }
 
         /// <summary>
-        /// Calls the appropriate handler function for the given notification payload.
+        /// Calls the appropriate handler function for the given datagram payload.
         /// </summary>
         /// <returns>Returns true if the function was found and executed.</returns>
-        internal bool RouteToNotificationHander(DmContext context, IDmPayload notificationPayload)
+        internal bool RouteToDatagramHander(DmContext context, IDmPayload datagramPayload)
         {
-            //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnNotificationReceived() event.
-            if (GetCachedMethod(notificationPayload, out var cachedMethod))
+            //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnDatagramReceived() event.
+            if (GetCachedMethod(datagramPayload, out var cachedMethod))
             {
                 if (GetCachedInstance(cachedMethod, out var cachedInstance))
                 {
-                    var method = MakeGenericMethodForPayload(cachedMethod, notificationPayload);
+                    var method = MakeGenericMethodForPayload(cachedMethod, datagramPayload);
 
                     switch (cachedMethod.MethodType)
                     {
                         case CachedMethodType.PayloadOnly:
-                            method.Invoke(cachedInstance, [notificationPayload]);
+                            method.Invoke(cachedInstance, [datagramPayload]);
                             return true;
                         case CachedMethodType.PayloadWithContext:
-                            method.Invoke(cachedInstance, [context, notificationPayload]);
+                            method.Invoke(cachedInstance, [context, datagramPayload]);
                             return true;
                     }
                 }
@@ -96,7 +96,7 @@ namespace NTDLS.DatagramMessaging.Internal
         {
             var payloadType = payload.GetType();
 
-            if (Caching.TryGet<MethodInfo>(payloadType, out var cached) && cached != null)
+            if (DmCaching.TryGet<MethodInfo>(payloadType, out var cached) && cached != null)
             {
                 return cached;
             }
@@ -127,7 +127,7 @@ namespace NTDLS.DatagramMessaging.Internal
                 var genericMethod = cachedMethod.Method.MakeGenericMethod(genericTypeArguments)
                     ?? throw new Exception("The generic assembly type could not be instantiated.");
 
-                Caching.SetOneMinute(payloadType, genericMethod);
+                DmCaching.SetOneMinute(payloadType, genericMethod);
 
                 return genericMethod;
             }

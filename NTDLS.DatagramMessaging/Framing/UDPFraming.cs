@@ -47,10 +47,10 @@ namespace NTDLS.DatagramMessaging.Framing
                         //For the server, the context will be null because the endpoint is created via ReadData() when the NAT is established.
                         //Assuming the NAT is open for 30 seconds sans any activity, we are going to cache the context with a ~similar expiration.
                         var cacheKey = $"UPD.NAT.Context[{endpoint}]";
-                        if (!Caching.TryGet(cacheKey, out context) || context == null)
+                        if (!DmCaching.TryGet(cacheKey, out context) || context == null)
                         {
                             context = new DmContext(messenger, udpClient, endpoint);
-                            Caching.SetTenMinutes(cacheKey, context);
+                            DmCaching.SetTenMinutes(cacheKey, context);
                         }
                     }
 
@@ -68,11 +68,11 @@ namespace NTDLS.DatagramMessaging.Framing
         }
 
         /// <summary>
-        /// Sends a one-time fire-and-forget notification.
+        /// Sends a one-time fire-and-forget datagram.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
         /// <param name="context">Contains information about the endpoint and the connection.</param>
-        /// <param name="framePayload">The notification payload that will be sent.</param>
+        /// <param name="framePayload">The datagram payload that will be sent.</param>
         /// <param name="hostOrIPAddress">Host or IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
         public static void Dispatch(this UdpClient udpClient, DmContext context, string hostOrIPAddress, int port, IDmDatagram framePayload)
@@ -91,11 +91,11 @@ namespace NTDLS.DatagramMessaging.Framing
         }
 
         /// <summary>
-        /// Sends a one-time fire-and-forget notification.
+        /// Sends a one-time fire-and-forget datagram.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
         /// <param name="context">Contains information about the endpoint and the connection.</param>
-        /// <param name="framePayload">The notification payload that will be sent.</param>
+        /// <param name="framePayload">The datagram payload that will be sent.</param>
         /// <param name="ipAddress">IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
         public static void Dispatch(this UdpClient udpClient, DmContext context, IPAddress ipAddress, int port, IDmDatagram framePayload)
@@ -114,12 +114,12 @@ namespace NTDLS.DatagramMessaging.Framing
         }
 
         /// <summary>
-        /// Sends a one-time fire-and-forget notification.
+        /// Sends a one-time fire-and-forget datagram.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
         /// <param name="context">Contains information about the endpoint and the connection.</param>
         /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
-        /// <param name="framePayload">The notification payload that will be sent.</param>
+        /// <param name="framePayload">The datagram payload that will be sent.</param>
         public static void Dispatch(this UdpClient udpClient, DmContext context, IPEndPoint endpoint, IDmDatagram framePayload)
         {
             try
@@ -136,7 +136,7 @@ namespace NTDLS.DatagramMessaging.Framing
         }
 
         /// <summary>
-        /// Sends a one-time fire-and-forget byte array payload. These are and handled in processNotificationCallback().
+        /// Sends a one-time fire-and-forget byte array payload. These are and handled in ProcessDatagramCallback().
         /// When a raw byte array is use, all json serialization is skipped and checks for this payload type are prioritized for performance.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
@@ -165,7 +165,7 @@ namespace NTDLS.DatagramMessaging.Framing
         }
 
         /// <summary>
-        /// Sends a one-time fire-and-forget byte array payload. These are and handled in processNotificationCallback().
+        /// Sends a one-time fire-and-forget byte array payload. These are and handled in ProcessDatagramCallback().
         /// When a raw byte array is use, all json serialization is skipped and checks for this payload type are prioritized for performance.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
@@ -194,7 +194,7 @@ namespace NTDLS.DatagramMessaging.Framing
         }
 
         /// <summary>
-        /// Sends a one-time fire-and-forget byte array payload. These are and handled in processNotificationCallback().
+        /// Sends a one-time fire-and-forget byte array payload. These are and handled in ProcessDatagramCallback().
         /// When a raw byte array is use, all json serialization is skipped and checks for this payload type are prioritized for performance.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
@@ -349,20 +349,20 @@ namespace NTDLS.DatagramMessaging.Framing
 
                     var framePayload = ExtractFramePayload(context, frameBody);
 
-                    if (framePayload is DmNotificationBytes frameNotificationBytes)
+                    if (framePayload is DmDatagramBytes datagramBytes)
                     {
-                        if (context.Messenger.AsynchronousNotifications)
+                        if (context.Messenger.AsynchronousDatagramProcessing)
                         {
                             //Keep a reference to the frame payload that we are going to perform an async wait on.
-                            var asynchronousNotificationBytes = frameNotificationBytes;
+                            var asynchronousDatagramBytes = datagramBytes;
                             Task.Run(() =>
                             {
-                                context.Messenger.ProcessFrameNotificationByConvention(context, asynchronousNotificationBytes);
+                                context.Messenger.ProcessFrameDatagramByConvention(context, asynchronousDatagramBytes);
                             });
                         }
                         else
                         {
-                            context.Messenger.ProcessFrameNotificationByConvention(context, frameNotificationBytes);
+                            context.Messenger.ProcessFrameDatagramByConvention(context, datagramBytes);
                         }
                     }
                     else if (framePayload is DmKeepAliveMessage keepAliveMessage)
@@ -382,20 +382,20 @@ namespace NTDLS.DatagramMessaging.Framing
                             context.Messenger.InvokeOnKeepAlive(context, keepAliveReply);
                         });
                     }
-                    else if (framePayload is IDmDatagram notification)
+                    else if (framePayload is IDmDatagram datagram)
                     {
-                        if (context.Messenger.AsynchronousNotifications)
+                        if (context.Messenger.AsynchronousDatagramProcessing)
                         {
                             //Keep a reference to the frame payload that we are going to perform an async wait on.
-                            var asynchronousNotification = notification;
+                            var asynchronousDatagram = datagram;
                             Task.Run(() =>
                             {
-                                context.Messenger.ProcessFrameNotificationByConvention(context, asynchronousNotification);
+                                context.Messenger.ProcessFrameDatagramByConvention(context, asynchronousDatagram);
                             });
                         }
                         else
                         {
-                            context.Messenger.ProcessFrameNotificationByConvention(context, notification);
+                            context.Messenger.ProcessFrameDatagramByConvention(context, datagram);
                         }
                     }
                     else
@@ -421,7 +421,7 @@ namespace NTDLS.DatagramMessaging.Framing
             {
                 if (frame.ObjectType == "byte[]")
                 {
-                    return new DmNotificationBytes(frame.Bytes);
+                    return new DmDatagramBytes(frame.Bytes);
                 }
 
                 string cacheKey = $"{frame.ObjectType}";

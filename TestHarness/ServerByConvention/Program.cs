@@ -8,6 +8,7 @@ namespace ServerByConvention
         static void Main()
         {
             var dmServer = new DmServer(1234);
+            dmServer.OnException += DmServer_OnException;
 
             dmServer.AddHandler(new HandlePackets());
 
@@ -16,19 +17,24 @@ namespace ServerByConvention
             dmServer.Stop();
         }
 
+        private static void DmServer_OnException(DmContext? context, Exception ex)
+        {
+            Console.WriteLine(ex.GetBaseException().Message);
+        }
+
         private class HandlePackets : IDmMessageHandler
         {
-            public static void ProcessFrameNotificationCallback(DmContext context, DmNotificationBytes bytes)
+            public static void ProcessFrameDatagramCallback(DmContext context, DmDatagramBytes datagram)
             {
-                context.Dispatch(bytes.Bytes); //Echo the payload back to the sender.
+                context.Dispatch(datagram.Bytes); //Echo the payload back to the sender.
 
-                Console.WriteLine($"Received {bytes.Bytes.Length} bytes.");
+                Console.WriteLine($"Received {datagram.Bytes.Length} bytes.");
             }
 
-            public static void ProcessFrameNotificationCallback(DmContext context, MyFirstUDPPacket payload)
+            public static void ProcessFrameDatagramCallback(DmContext context, MyFirstUDPPacket datagram)
             {
-                context.Dispatch(payload); //Echo the payload back to the sender.
-                Console.WriteLine($"{payload.Message}->{payload.UID}->{payload.TimeStamp}");
+                context.Dispatch(datagram); //Echo the payload back to the sender.
+                Console.WriteLine($"{datagram.Message}->{datagram.UID}->{datagram.TimeStamp}");
             }
         }
     }
