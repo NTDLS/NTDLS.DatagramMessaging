@@ -1,19 +1,19 @@
 ﻿namespace NTDLS.DatagramMessaging
 {
     /// <summary>
-    /// Used to send a payload of a raw byte array. Used by WriteBytesFrame() and handled in processDatagramCallback().
-    /// When a raw byte array is use, all json serialization is skipped and checks for this payload type are prioritized for performance.
+    /// Used to send a datagram of a raw byte array. Used by WriteBytesFrame() and handled in processDatagramCallback().
+    /// When a raw byte array is used, all json serialization is skipped and checks for this datagram type are prioritized for performance.
     /// </summary>
     public class DmDatagramBytes
         : IDmDatagram
     {
         /// <summary>
-        /// The payload bytes of the frame.
+        /// The payload bytes of the datagram.
         /// </summary>
         public byte[] Bytes { get; set; }
 
         /// <summary>
-        /// Instantiates a new frame payload from a byte array.
+        /// Instantiates a new datagram from a byte array.
         /// </summary>
         public DmDatagramBytes(byte[] bytes)
         {

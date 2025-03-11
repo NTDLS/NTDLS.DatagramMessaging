@@ -18,7 +18,7 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Routes inbound packets to the appropriate handler.
         /// </summary>
-        void ProcessFrameDatagramByConvention(DmContext context, IDmDatagram payload);
+        void ProcessFrameDatagramByConvention(DmContext context, IDmDatagram datagram);
 
         /// <summary>
         /// Denotes whether the receive thread is active.

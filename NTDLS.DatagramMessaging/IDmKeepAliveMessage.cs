@@ -3,7 +3,7 @@
 namespace NTDLS.DatagramMessaging
 {
     /// <summary>
-    /// Payload that is used to communicate a keep-alive.
+    /// Datagram that is used to communicate a keep-alive and keep-alive replies.
     /// </summary>
     public interface IDmKeepAliveMessage
     {

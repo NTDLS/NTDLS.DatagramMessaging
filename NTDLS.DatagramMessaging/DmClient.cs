@@ -336,17 +336,17 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Routes inbound packets to the appropriate handler.
         /// </summary>
-        public void ProcessFrameDatagramByConvention(DmContext context, IDmDatagram payload)
+        public void ProcessFrameDatagramByConvention(DmContext context, IDmDatagram datagram)
         {
             try
             {
                 //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnDatagramReceived() event.
-                if (ReflectionCache.RouteToDatagramHander(context, payload))
+                if (ReflectionCache.RouteToDatagramHander(context, datagram))
                 {
                     return; //Datagram was handled by handler routing.
                 }
 
-                OnDatagramReceived?.Invoke(context, payload);
+                OnDatagramReceived?.Invoke(context, datagram);
             }
             catch (Exception ex)
             {
@@ -360,50 +360,50 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Sends a return serialized message to the remote endpoint defined when the client was created.
         /// </summary>
-        public void Dispatch(IDmDatagram payload)
-            => Context.Dispatch(payload);
+        public void Dispatch(IDmDatagram datagram)
+            => Context.Dispatch(datagram);
 
         /// <summary>
         /// Sends a frame containing the given bytes to the remote endpoint defined when the client was created.
         /// </summary>
-        public void Dispatch(byte[] payload)
-            => Context.Dispatch(payload);
+        public void Dispatch(byte[] bytes)
+            => Context.Dispatch(bytes);
 
         /// <summary>
         /// Sends a serialized message to the specified endpoint.
         /// </summary>
-        public void Dispatch(string hostOrIPAddress, int port, IDmDatagram payload)
-            => Context.Dispatch(hostOrIPAddress, port, payload);
+        public void Dispatch(string hostOrIPAddress, int port, IDmDatagram datagram)
+            => Context.Dispatch(hostOrIPAddress, port, datagram);
 
         /// <summary>
         /// Sends a serialized message to the specified endpoint.
         /// </summary>
-        public void Dispatch(IPAddress ipAddress, int port, IDmDatagram payload)
-            => Context.Dispatch(ipAddress, port, payload);
+        public void Dispatch(IPAddress ipAddress, int port, IDmDatagram datagram)
+            => Context.Dispatch(ipAddress, port, datagram);
 
         /// <summary>
         /// Sends a serialized message to the specified endpoint.
         /// </summary>
-        public void Dispatch(IPEndPoint endpoint, IDmDatagram payload)
-            => Context.Dispatch(endpoint, payload);
+        public void Dispatch(IPEndPoint endpoint, IDmDatagram datagram)
+            => Context.Dispatch(endpoint, datagram);
 
         /// <summary>
         /// Sends a frame containing the given bytes to the specified endpoint.
         /// </summary>
-        public void Dispatch(string hostOrIPAddress, int port, byte[] payload)
-            => Context.Dispatch(hostOrIPAddress, port, payload);
+        public void Dispatch(string hostOrIPAddress, int port, byte[] bytes)
+            => Context.Dispatch(hostOrIPAddress, port, bytes);
 
         /// <summary>
         /// Sends a frame containing the given bytes to the specified endpoint.
         /// </summary>
-        public void Dispatch(IPAddress ipAddress, int port, byte[] payload)
-            => Context.Dispatch(ipAddress, port, payload);
+        public void Dispatch(IPAddress ipAddress, int port, byte[] bytes)
+            => Context.Dispatch(ipAddress, port, bytes);
 
         /// <summary>
         /// Sends a frame containing the given bytes to the specified endpoint.
         /// </summary>
-        public void Dispatch(IPEndPoint endpoint, byte[] payload)
-            => Context.Dispatch(endpoint, payload);
+        public void Dispatch(IPEndPoint endpoint, byte[] bytes)
+            => Context.Dispatch(endpoint, bytes);
 
         #endregion
     }

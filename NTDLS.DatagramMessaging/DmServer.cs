@@ -277,17 +277,17 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Routes inbound packets to the appropriate handler.
         /// </summary>
-        public void ProcessFrameDatagramByConvention(DmContext context, IDmDatagram payload)
+        public void ProcessFrameDatagramByConvention(DmContext context, IDmDatagram datagram)
         {
             try
             {
                 //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnDatagramReceived() event.
-                if (ReflectionCache.RouteToDatagramHander(context, payload))
+                if (ReflectionCache.RouteToDatagramHander(context, datagram))
                 {
                     return; //Datagram was handled by handler routing.
                 }
 
-                OnDatagramReceived?.Invoke(context, payload);
+                OnDatagramReceived?.Invoke(context, datagram);
             }
             catch (Exception ex)
             {

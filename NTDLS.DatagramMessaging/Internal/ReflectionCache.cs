@@ -17,13 +17,13 @@ namespace NTDLS.DatagramMessaging.Internal
         internal enum CachedMethodType
         {
             /// <summary>
-            /// The hander function has only a payload parameter.
+            /// The hander function has only a datagram parameter.
             /// </summary>
-            PayloadOnly,
+            DatagramOnly,
             /// <summary>
-            /// The hander function has both a context and a payload parameter.
+            /// The hander function has both a context and a datagram parameter.
             /// </summary>
-            PayloadWithContext
+            DatagramWithContext
         }
 
         /// <summary>
@@ -62,25 +62,25 @@ namespace NTDLS.DatagramMessaging.Internal
         }
 
         /// <summary>
-        /// Calls the appropriate handler function for the given datagram payload.
+        /// Calls the appropriate handler function for the given datagram.
         /// </summary>
         /// <returns>Returns true if the function was found and executed.</returns>
-        internal bool RouteToDatagramHander(DmContext context, IDmPayload datagramPayload)
+        internal bool RouteToDatagramHander(DmContext context, IDmDatagram datagram)
         {
             //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnDatagramReceived() event.
-            if (GetCachedMethod(datagramPayload, out var cachedMethod))
+            if (GetCachedMethod(datagram, out var cachedMethod))
             {
                 if (GetCachedInstance(cachedMethod, out var cachedInstance))
                 {
-                    var method = MakeGenericMethodForPayload(cachedMethod, datagramPayload);
+                    var method = MakeGenericMethodForDatagram(cachedMethod, datagram);
 
                     switch (cachedMethod.MethodType)
                     {
-                        case CachedMethodType.PayloadOnly:
-                            method.Invoke(cachedInstance, [datagramPayload]);
+                        case CachedMethodType.DatagramOnly:
+                            method.Invoke(cachedInstance, [datagram]);
                             return true;
-                        case CachedMethodType.PayloadWithContext:
-                            method.Invoke(cachedInstance, [context, datagramPayload]);
+                        case CachedMethodType.DatagramWithContext:
+                            method.Invoke(cachedInstance, [context, datagram]);
                             return true;
                     }
                 }
@@ -92,29 +92,29 @@ namespace NTDLS.DatagramMessaging.Internal
         /// <summary>
         /// Creates a cacheable and invokable instance of a handler function by matching generic argument types.
         /// </summary>
-        private static MethodInfo MakeGenericMethodForPayload(CachedMethod cachedMethod, IDmPayload payload)
+        private static MethodInfo MakeGenericMethodForDatagram(CachedMethod cachedMethod, IDmDatagram datagram)
         {
-            var payloadType = payload.GetType();
+            var datagramType = datagram.GetType();
 
-            if (DmCaching.TryGet<MethodInfo>(payloadType, out var cached) && cached != null)
+            if (DmCaching.TryGet<MethodInfo>(datagramType, out var cached) && cached != null)
             {
                 return cached;
             }
 
-            if (payloadType.IsGenericType && cachedMethod.Method.IsGenericMethod == true)
+            if (datagramType.IsGenericType && cachedMethod.Method.IsGenericMethod == true)
             {
-                //If both the payload and the handler function are generic, We need to create a
-                //  generic version of the handler function using the generic types of the payload.
+                //If both the datagram and the handler function are generic, We need to create a
+                //  generic version of the handler function using the generic types of the datagram.
 
                 // Get the generic type definition and its assembly name
-                var typeDefinitionName = payloadType.GetGenericTypeDefinition().FullName
+                var typeDefinitionName = datagramType.GetGenericTypeDefinition().FullName
                      ?? throw new Exception("The generic type name is not available.");
 
-                var assemblyName = payloadType.Assembly.FullName
+                var assemblyName = datagramType.Assembly.FullName
                      ?? throw new Exception("The generic assembly type name is not available.");
 
                 // Recursively get the AssemblyQualifiedName of generic arguments
-                var genericTypeArguments = payloadType.GetGenericArguments()
+                var genericTypeArguments = datagramType.GetGenericArguments()
                     .Select(t => Type.GetType(t.AssemblyQualifiedName ?? Reflection.GetAssemblyQualifiedTypeName(t))
                      ?? throw new Exception($"The generic assembly type [{t.AssemblyQualifiedName}] could not be instantiated.")
                     ).ToArray();
@@ -127,7 +127,7 @@ namespace NTDLS.DatagramMessaging.Internal
                 var genericMethod = cachedMethod.Method.MakeGenericMethod(genericTypeArguments)
                     ?? throw new Exception("The generic assembly type could not be instantiated.");
 
-                DmCaching.SetOneMinute(payloadType, genericMethod);
+                DmCaching.SetOneMinute(datagramType, genericMethod);
 
                 return genericMethod;
             }
@@ -166,9 +166,9 @@ namespace NTDLS.DatagramMessaging.Internal
         /// <summary>
         /// Gets the handler function from the pre-loaded handler function cache.
         /// </summary>
-        private bool GetCachedMethod(IDmPayload payload, [NotNullWhen(true)] out CachedMethod? cachedMethod)
+        private bool GetCachedMethod(IDmDatagram datagram, [NotNullWhen(true)] out CachedMethod? cachedMethod)
         {
-            var typeName = Reflection.GetAssemblyQualifiedTypeNameWithClosedGenerics(payload);
+            var typeName = Reflection.GetAssemblyQualifiedTypeNameWithClosedGenerics(datagram);
 
             if (_handlerMethods.TryGetValue(typeName, out cachedMethod) == false)
             {
@@ -193,16 +193,16 @@ namespace NTDLS.DatagramMessaging.Internal
                 var parameters = method.GetParameters();
                 if (parameters.Length == 1)
                 {
-                    if (typeof(IDmPayload).IsAssignableFrom(parameters[0].ParameterType) == false)
+                    if (typeof(IDmDatagram).IsAssignableFrom(parameters[0].ParameterType) == false)
                     {
                         continue;
                     }
 
-                    var payloadParameter = parameters[0];
-                    if (payloadParameter != null)
+                    var datagramParameter = parameters[0];
+                    if (datagramParameter != null)
                     {
-                        var payloadParameterTypeName = Reflection.GetAssemblyQualifiedTypeNameWithClosedGenerics(payloadParameter.ParameterType);
-                        _handlerMethods.Add(payloadParameterTypeName, new CachedMethod(CachedMethodType.PayloadOnly, method));
+                        var datagramParameterTypeName = Reflection.GetAssemblyQualifiedTypeNameWithClosedGenerics(datagramParameter.ParameterType);
+                        _handlerMethods.Add(datagramParameterTypeName, new CachedMethod(CachedMethodType.DatagramOnly, method));
                     }
                 }
                 else if (parameters.Length == 2)
@@ -212,16 +212,16 @@ namespace NTDLS.DatagramMessaging.Internal
                         continue;
                     }
 
-                    if (typeof(IDmPayload).IsAssignableFrom(parameters[1].ParameterType) == false)
+                    if (typeof(IDmDatagram).IsAssignableFrom(parameters[1].ParameterType) == false)
                     {
                         continue;
                     }
 
-                    var payloadParameter = parameters[1];
-                    if (payloadParameter != null)
+                    var datagramParameter = parameters[1];
+                    if (datagramParameter != null)
                     {
-                        var payloadParameterTypeName = Reflection.GetAssemblyQualifiedTypeNameWithClosedGenerics(payloadParameter.ParameterType);
-                        _handlerMethods.Add(payloadParameterTypeName, new CachedMethod(CachedMethodType.PayloadWithContext, method));
+                        var datagramParameterTypeName = Reflection.GetAssemblyQualifiedTypeNameWithClosedGenerics(datagramParameter.ParameterType);
+                        _handlerMethods.Add(datagramParameterTypeName, new CachedMethod(CachedMethodType.DatagramWithContext, method));
                     }
                 }
             }

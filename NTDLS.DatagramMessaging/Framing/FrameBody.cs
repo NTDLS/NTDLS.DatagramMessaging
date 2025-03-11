@@ -6,7 +6,7 @@ using System.Text;
 namespace NTDLS.DatagramMessaging.Framing
 {
     /// <summary>
-    /// Comprises the body of the frame. Contains the payload and all information needed to deserialize it.
+    /// Comprises the body of the frame. Contains the datagram payload and all information needed to deserialize it.
     /// </summary>
     [Serializable]
     [ProtoContract]
@@ -25,21 +25,21 @@ namespace NTDLS.DatagramMessaging.Framing
         public byte[] Bytes { get; set; } = Array.Empty<byte>();
 
         /// <summary>
-        /// Instantiates a frame payload with a serialized payload.
+        /// Instantiates a frame payload with a serialized datagram.
         /// </summary>
-        public FrameBody(IDmSerializationProvider? serializationProvider, IDmPayload framePayload)
+        public FrameBody(IDmSerializationProvider? serializationProvider, IDmDatagram datagram)
         {
-            ObjectType = Reflection.GetAssemblyQualifiedTypeNameWithClosedGenerics(framePayload);
-            Bytes = Encoding.UTF8.GetBytes(Serialization.RmSerializeFramePayloadToText(serializationProvider, framePayload));
+            ObjectType = Reflection.GetAssemblyQualifiedTypeNameWithClosedGenerics(datagram);
+            Bytes = Encoding.UTF8.GetBytes(Serialization.RmSerializeFramePayloadToText(serializationProvider, datagram));
         }
 
         /// <summary>
         /// Instantiates a frame payload using a raw byte array.
         /// </summary>
-        public FrameBody(byte[] bytesPayload)
+        public FrameBody(byte[] datagramBytes)
         {
             ObjectType = "byte[]";
-            Bytes = bytesPayload;
+            Bytes = datagramBytes;
         }
 
         /// <summary>

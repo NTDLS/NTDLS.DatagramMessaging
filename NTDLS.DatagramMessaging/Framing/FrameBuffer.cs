@@ -40,7 +40,7 @@ namespace NTDLS.DatagramMessaging.Framing
         public byte[] FrameBuilder;
 
         /// <summary>
-        /// The length of the data currently contained in the PayloadBuilder.
+        /// The length of the data currently contained in the FrameBuilder.
         /// </summary>
         public int FrameBuilderLength = 0;
 

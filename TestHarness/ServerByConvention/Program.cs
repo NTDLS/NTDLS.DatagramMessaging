@@ -26,14 +26,14 @@ namespace ServerByConvention
         {
             public static void ProcessFrameDatagramCallback(DmContext context, DmDatagramBytes datagram)
             {
-                context.Dispatch(datagram.Bytes); //Echo the payload back to the sender.
+                context.Dispatch(datagram.Bytes); //Echo the datagram back to the sender.
 
                 Console.WriteLine($"Received {datagram.Bytes.Length} bytes.");
             }
 
             public static void ProcessFrameDatagramCallback(DmContext context, MyFirstUDPPacket datagram)
             {
-                context.Dispatch(datagram); //Echo the payload back to the sender.
+                context.Dispatch(datagram); //Echo the datagram back to the sender.
                 Console.WriteLine($"{datagram.Message}->{datagram.UID}->{datagram.TimeStamp}");
             }
         }

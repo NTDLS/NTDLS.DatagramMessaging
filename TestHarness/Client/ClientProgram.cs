@@ -40,13 +40,13 @@ namespace Client
             Console.WriteLine(ex.GetBaseException().Message);
         }
 
-        private static void UdpManager_OnDatagramReceived(DmContext context, IDmDatagram payload)
+        private static void UdpManager_OnDatagramReceived(DmContext context, IDmDatagram datagram)
         {
-            if (payload is DmDatagramBytes bytes)
+            if (datagram is DmDatagramBytes bytes)
             {
                 Console.WriteLine($"Received {bytes.Bytes.Length} bytes.");
             }
-            else if (payload is MyFirstUDPPacket myFirstUDPPacket)
+            else if (datagram is MyFirstUDPPacket myFirstUDPPacket)
             {
                 Console.WriteLine($"{myFirstUDPPacket.Message}->{myFirstUDPPacket.UID}->{myFirstUDPPacket.TimeStamp}");
             }

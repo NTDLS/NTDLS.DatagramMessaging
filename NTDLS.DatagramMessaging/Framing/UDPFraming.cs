@@ -72,14 +72,14 @@ namespace NTDLS.DatagramMessaging.Framing
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
         /// <param name="context">Contains information about the endpoint and the connection.</param>
-        /// <param name="framePayload">The datagram payload that will be sent.</param>
+        /// <param name="datagram">The datagram that will be sent.</param>
         /// <param name="hostOrIPAddress">Host or IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
-        public static void Dispatch(this UdpClient udpClient, DmContext context, string hostOrIPAddress, int port, IDmDatagram framePayload)
+        public static void Dispatch(this UdpClient udpClient, DmContext context, string hostOrIPAddress, int port, IDmDatagram datagram)
         {
             try
             {
-                var frameBody = new FrameBody(context.GetSerializationProvider(), framePayload);
+                var frameBody = new FrameBody(context.GetSerializationProvider(), datagram);
                 var frameBytes = AssembleFrame(context, frameBody);
                 udpClient.Send(frameBytes, frameBytes.Length, hostOrIPAddress, port);
             }
@@ -95,14 +95,14 @@ namespace NTDLS.DatagramMessaging.Framing
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
         /// <param name="context">Contains information about the endpoint and the connection.</param>
-        /// <param name="framePayload">The datagram payload that will be sent.</param>
+        /// <param name="datagram">The datagram that will be sent.</param>
         /// <param name="ipAddress">IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
-        public static void Dispatch(this UdpClient udpClient, DmContext context, IPAddress ipAddress, int port, IDmDatagram framePayload)
+        public static void Dispatch(this UdpClient udpClient, DmContext context, IPAddress ipAddress, int port, IDmDatagram datagram)
         {
             try
             {
-                var frameBody = new FrameBody(context.GetSerializationProvider(), framePayload);
+                var frameBody = new FrameBody(context.GetSerializationProvider(), datagram);
                 var frameBytes = AssembleFrame(context, frameBody);
                 udpClient.Send(frameBytes, frameBytes.Length, new IPEndPoint(ipAddress, port));
             }
@@ -119,12 +119,12 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="udpClient">The client to send the data on.</param>
         /// <param name="context">Contains information about the endpoint and the connection.</param>
         /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
-        /// <param name="framePayload">The datagram payload that will be sent.</param>
-        public static void Dispatch(this UdpClient udpClient, DmContext context, IPEndPoint endpoint, IDmDatagram framePayload)
+        /// <param name="datagram">The datagram that will be sent.</param>
+        public static void Dispatch(this UdpClient udpClient, DmContext context, IPEndPoint endpoint, IDmDatagram datagram)
         {
             try
             {
-                var frameBody = new FrameBody(context.GetSerializationProvider(), framePayload);
+                var frameBody = new FrameBody(context.GetSerializationProvider(), datagram);
                 var frameBytes = AssembleFrame(context, frameBody);
                 udpClient.Send(frameBytes, frameBytes.Length, endpoint);
             }
@@ -136,15 +136,15 @@ namespace NTDLS.DatagramMessaging.Framing
         }
 
         /// <summary>
-        /// Sends a one-time fire-and-forget byte array payload. These are and handled in ProcessDatagramCallback().
-        /// When a raw byte array is use, all json serialization is skipped and checks for this payload type are prioritized for performance.
+        /// Sends a one-time fire-and-forget byte array datagram. These are and handled in ProcessDatagramCallback().
+        /// When a raw byte array is use, all json serialization is skipped and checks for this datagram type are prioritized for performance.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
         /// <param name="context">Contains information about the endpoint and the connection.</param>
-        /// <param name="framePayload">The bytes will make up the body of the frame which is written.</param>
+        /// <param name="datagramBytes">The bytes will make up the body of the frame which is written.</param>
         /// <param name="hostOrIPAddress">Host or IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
-        public static void Dispatch(this UdpClient udpClient, DmContext context, string hostOrIPAddress, int port, byte[] framePayload)
+        public static void Dispatch(this UdpClient udpClient, DmContext context, string hostOrIPAddress, int port, byte[] datagramBytes)
         {
             try
             {
@@ -153,7 +153,7 @@ namespace NTDLS.DatagramMessaging.Framing
                     throw new Exception("WriteBytesFrame: client can not be null.");
                 }
 
-                var frameBody = new FrameBody(framePayload);
+                var frameBody = new FrameBody(datagramBytes);
                 var frameBytes = AssembleFrame(context, frameBody);
                 udpClient.Send(frameBytes, frameBytes.Length, hostOrIPAddress, port);
             }
@@ -165,15 +165,15 @@ namespace NTDLS.DatagramMessaging.Framing
         }
 
         /// <summary>
-        /// Sends a one-time fire-and-forget byte array payload. These are and handled in ProcessDatagramCallback().
-        /// When a raw byte array is use, all json serialization is skipped and checks for this payload type are prioritized for performance.
+        /// Sends a one-time fire-and-forget byte array datagram. These are and handled in ProcessDatagramCallback().
+        /// When a raw byte array is use, all json serialization is skipped and checks for this datagram type are prioritized for performance.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
         /// <param name="context">Contains information about the endpoint and the connection.</param>
-        /// <param name="framePayload">The bytes will make up the body of the frame which is written.</param>
+        /// <param name="datagramBytes">The bytes will make up the body of the frame which is written.</param>
         /// <param name="ipAddress">IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
-        public static void Dispatch(this UdpClient udpClient, DmContext context, IPAddress ipAddress, int port, byte[] framePayload)
+        public static void Dispatch(this UdpClient udpClient, DmContext context, IPAddress ipAddress, int port, byte[] datagramBytes)
         {
             try
             {
@@ -182,7 +182,7 @@ namespace NTDLS.DatagramMessaging.Framing
                     throw new Exception("WriteBytesFrame: client can not be null.");
                 }
 
-                var frameBody = new FrameBody(framePayload);
+                var frameBody = new FrameBody(datagramBytes);
                 var frameBytes = AssembleFrame(context, frameBody);
                 udpClient.Send(frameBytes, frameBytes.Length, new IPEndPoint(ipAddress, port));
             }
@@ -194,14 +194,14 @@ namespace NTDLS.DatagramMessaging.Framing
         }
 
         /// <summary>
-        /// Sends a one-time fire-and-forget byte array payload. These are and handled in ProcessDatagramCallback().
-        /// When a raw byte array is use, all json serialization is skipped and checks for this payload type are prioritized for performance.
+        /// Sends a one-time fire-and-forget byte array datagram. These are and handled in ProcessDatagramCallback().
+        /// When a raw byte array is use, all json serialization is skipped and checks for this datagram type are prioritized for performance.
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
         /// <param name="context">Contains information about the endpoint and the connection.</param>
         /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
-        /// <param name="framePayload">The bytes will make up the body of the frame which is written.</param>
-        public static void Dispatch(this UdpClient udpClient, DmContext context, IPEndPoint endpoint, byte[] framePayload)
+        /// <param name="datagramBytes">The bytes will make up the body of the frame which is written.</param>
+        public static void Dispatch(this UdpClient udpClient, DmContext context, IPEndPoint endpoint, byte[] datagramBytes)
         {
             try
             {
@@ -210,7 +210,7 @@ namespace NTDLS.DatagramMessaging.Framing
                     throw new Exception("WriteBytesFrame: client can not be null.");
                 }
 
-                var frameBody = new FrameBody(framePayload);
+                var frameBody = new FrameBody(datagramBytes);
                 var frameBytes = AssembleFrame(context, frameBody);
                 udpClient.Send(frameBytes, frameBytes.Length, endpoint);
             }
@@ -347,14 +347,14 @@ namespace NTDLS.DatagramMessaging.Framing
                     Buffer.BlockCopy(frameBuffer.FrameBuilder, grossFrameSize, frameBuffer.FrameBuilder, 0, frameBuffer.FrameBuilderLength - grossFrameSize);
                     frameBuffer.FrameBuilderLength -= grossFrameSize;
 
-                    var framePayload = ExtractFramePayload(context, frameBody);
+                    var datagram = ExtractFrameDatagram(context, frameBody);
 
-                    if (framePayload is DmDatagramBytes datagramBytes)
+                    if (datagram is DmDatagramBytes dmDatagramBytes)
                     {
                         if (context.Messenger.AsynchronousDatagramProcessing)
                         {
-                            //Keep a reference to the frame payload that we are going to perform an async wait on.
-                            var asynchronousDatagramBytes = datagramBytes;
+                            //Keep a reference to the datagram that we are going to perform an async operation on.
+                            var asynchronousDatagramBytes = dmDatagramBytes;
                             Task.Run(() =>
                             {
                                 context.Messenger.ProcessFrameDatagramByConvention(context, asynchronousDatagramBytes);
@@ -362,32 +362,32 @@ namespace NTDLS.DatagramMessaging.Framing
                         }
                         else
                         {
-                            context.Messenger.ProcessFrameDatagramByConvention(context, datagramBytes);
+                            context.Messenger.ProcessFrameDatagramByConvention(context, dmDatagramBytes);
                         }
                     }
-                    else if (framePayload is DmKeepAliveMessage keepAliveMessage)
+                    else if (datagram is DmKeepAliveMessage dmKeepAliveMessage)
                     {
                         Task.Run(() =>
                         {
                             //Discard keep-alive message.
-                            context.Messenger.InvokeOnKeepAlive(context, keepAliveMessage);
+                            context.Messenger.InvokeOnKeepAlive(context, dmKeepAliveMessage);
                             context.Dispatch(new DmKeepAliveReplyMessage()); //Reply to the keep-alive request.
                         });
                     }
-                    else if (framePayload is DmKeepAliveReplyMessage keepAliveReply)
+                    else if (datagram is DmKeepAliveReplyMessage dmKeepAliveReply)
                     {
                         Task.Run(() =>
                         {
                             //Discard keep-alive message.
-                            context.Messenger.InvokeOnKeepAlive(context, keepAliveReply);
+                            context.Messenger.InvokeOnKeepAlive(context, dmKeepAliveReply);
                         });
                     }
-                    else if (framePayload is IDmDatagram datagram)
+                    else if (datagram is IDmDatagram dmDatagram)
                     {
                         if (context.Messenger.AsynchronousDatagramProcessing)
                         {
-                            //Keep a reference to the frame payload that we are going to perform an async wait on.
-                            var asynchronousDatagram = datagram;
+                            //Keep a reference to the datagram that we are going to perform an async operation on.
+                            var asynchronousDatagram = dmDatagram;
                             Task.Run(() =>
                             {
                                 context.Messenger.ProcessFrameDatagramByConvention(context, asynchronousDatagram);
@@ -395,12 +395,12 @@ namespace NTDLS.DatagramMessaging.Framing
                         }
                         else
                         {
-                            context.Messenger.ProcessFrameDatagramByConvention(context, datagram);
+                            context.Messenger.ProcessFrameDatagramByConvention(context, dmDatagram);
                         }
                     }
                     else
                     {
-                        throw new Exception("ProcessFrameBuffer: Encountered undefined frame payload type.");
+                        throw new Exception("ProcessFrameBuffer: Encountered undefined datagram type.");
                     }
                 }
             }
@@ -412,10 +412,11 @@ namespace NTDLS.DatagramMessaging.Framing
         }
 
         /// <summary>
-        /// Uses the "EnclosedPayloadType" to determine the type of the payload and then uses reflection
-        /// to deserialize the json to that type. Deserialization is skipped when the type is byte[].
+        /// Uses the ObjectType to determine the type of the frame payload and then uses reflection
+        /// to deserialize the json to a datagram containing that type.
+        /// Deserialization is skipped when the type is byte[].
         /// </summary>
-        private static IDmPayload ExtractFramePayload(DmContext context, FrameBody frame)
+        private static IDmDatagram ExtractFrameDatagram(DmContext context, FrameBody frame)
         {
             try
             {
@@ -442,7 +443,7 @@ namespace NTDLS.DatagramMessaging.Framing
                 if (genericToObjectMethod != null)
                 {
                     //Call the generic deserialization:
-                    return (IDmPayload?)genericToObjectMethod.Invoke(null, [serializationProvider, json])
+                    return (IDmDatagram?)genericToObjectMethod.Invoke(null, [serializationProvider, json])
                         ?? throw new Exception($"Extraction payload can not be null.");
                 }
 
@@ -457,7 +458,7 @@ namespace NTDLS.DatagramMessaging.Framing
                 _reflectionCache.Use((o) => o.TryAdd(cacheKey, genericToObjectMethod));
 
                 //Call the generic deserialization:
-                return (IDmPayload?)genericToObjectMethod.Invoke(null, [serializationProvider, json])
+                return (IDmDatagram?)genericToObjectMethod.Invoke(null, [serializationProvider, json])
                     ?? throw new Exception($"Extraction payload can not be null.");
             }
             catch (Exception ex)
