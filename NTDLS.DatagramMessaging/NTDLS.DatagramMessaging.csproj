@@ -17,7 +17,7 @@
     <PackageReleaseNotes>
       Added keep-alive eventing.
     </PackageReleaseNotes>
-    <Version>1.6.3</Version>
+    <Version>1.7.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>UDP;framing;network;io;datagram</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
