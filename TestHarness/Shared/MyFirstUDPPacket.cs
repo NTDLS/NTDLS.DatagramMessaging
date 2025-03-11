@@ -2,7 +2,7 @@
 
 namespace Shared
 {
-    public class MyFirstUDPPacket : IDmNotification
+    public class MyFirstUDPPacket : IDmDatagram
     {
         public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
         public Guid UID { get; set; } = Guid.NewGuid();

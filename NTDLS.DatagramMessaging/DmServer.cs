@@ -15,34 +15,38 @@ namespace NTDLS.DatagramMessaging
         IDmMessenger
     {
         private static readonly Random _random = new();
-        private bool _keepRunning = false;
+        private bool _keepReceiveRunning = false;
         private Thread? _receiveThread = null;
 
-        #region Events.
+        #region Event: OnNotificationReceived.
 
         /// <summary>
         /// Event fired when a notification is received from a client.
         /// </summary>
-        public event NotificationReceivedEvent? OnNotificationReceived;
+        public event NotificationReceivedHandler? OnNotificationReceived;
 
         /// <summary>
         /// Event fired when a notification is received from a client.
         /// </summary>
         /// <param name="context">Information about the connection.</param>
         /// <param name="notification"></param>
-        public delegate void NotificationReceivedEvent(DmContext context, IDmNotification notification);
+        public delegate void NotificationReceivedHandler(DmContext context, IDmDatagram notification);
+
+        #endregion
+
+        #region Event: OnKeepAliveReceived.
 
         /// <summary>
         /// Event fired when a keep-alive notification is received.
         /// </summary>
-        public event KeepAliveReceivedEvent? OnKeepAliveReceived;
+        public event KeepAliveReceivedHandler? OnKeepAliveReceived;
 
         /// <summary>
         /// Event fired when a keep-alive notification is received.
         /// </summary>
         /// <param name="context">Information about the connection.</param>
         /// <param name="keepAlive">Instance of the keep-alive class that was received.</param>
-        public delegate void KeepAliveReceivedEvent(DmContext context, IDmKeepAliveMessage keepAlive);
+        public delegate void KeepAliveReceivedHandler(DmContext context, IDmKeepAliveMessage keepAlive);
 
         /// <summary>
         /// Event fired when a keep-alive notification is received.
@@ -53,6 +57,35 @@ namespace NTDLS.DatagramMessaging
             => OnKeepAliveReceived?.Invoke(context, keepAlive);
 
         #endregion
+
+        #region Event: OnException
+
+        /// <summary>
+        /// Event fired when a keep-alive notification is received.
+        /// </summary>
+        public event OnExceptionHander? OnException;
+
+        /// <summary>
+        /// Event fired when a keep-alive notification is received.
+        /// </summary>
+        /// <param name="context">Information about the connection.</param>
+        /// <param name="ex">information about the exception that occurred.</param>
+        public delegate void OnExceptionHander(DmContext? context, Exception ex);
+
+        /// <summary>
+        /// Event fired when a keep-alive notification is received.
+        /// </summary>
+        /// <param name="context">Information about the connection.</param>
+        /// <param name="ex">information about the exception that occurred.</param>
+        public void InvokeOnException(DmContext? context, Exception ex)
+            => OnException?.Invoke(context, ex);
+
+        #endregion
+
+        /// <summary>
+        /// Denotes whether the receive thread is active.
+        /// </summary>
+        public bool IsReceiveRunning { get => _keepReceiveRunning; }
 
         /// <summary>
         /// When true, notifications are queued in a thread pool.
@@ -105,8 +138,16 @@ namespace NTDLS.DatagramMessaging
         /// </summary>
         public void Start(int listenPort)
         {
+            try
+            {
             Client = new UdpClient(listenPort);
             ListenAsync(listenPort);
+            }
+            catch (Exception ex)
+            {
+                OnException?.Invoke(null, ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -126,7 +167,15 @@ namespace NTDLS.DatagramMessaging
         /// <param name="handler"></param>
         public void AddHandler(IDmMessageHandler handler)
         {
+            try
+            {
             ReflectionCache.AddInstance(handler);
+            }
+            catch (Exception ex)
+            {
+                OnException?.Invoke(null, ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -134,15 +183,22 @@ namespace NTDLS.DatagramMessaging
         /// </summary>
         public void Stop()
         {
-            if (_keepRunning)
+            try{
+            if (_keepReceiveRunning)
             {
                 try { Client?.Close(); } catch { }
                 try { Client?.Dispose(); } catch { }
 
                 Client = null;
 
-                _keepRunning = false;
+                _keepReceiveRunning = false;
                 _receiveThread?.Join();
+                }
+            }
+            catch (Exception ex)
+            {
+                OnException?.Invoke(null, ex);
+                throw;
             }
         }
 
@@ -179,6 +235,7 @@ namespace NTDLS.DatagramMessaging
 
         private void ListenAsync(int listenPort)
         {
+            try{
             if (Client == null)
             {
                 throw new Exception("The UDP client has not been initialized.");
@@ -187,30 +244,41 @@ namespace NTDLS.DatagramMessaging
             FrameBuffer frameBuffer = new();
             var serverEndpoint = new IPEndPoint(IPAddress.Any, listenPort);
 
-            _keepRunning = true;
+            _keepReceiveRunning = true;
 
             _receiveThread = new Thread(o =>
             {
-                while (_keepRunning)
+                while (_keepReceiveRunning)
                 {
                     try
                     {
-                        while (_keepRunning && Client.ReadAndProcessFrames(serverEndpoint, this, null, frameBuffer))
+                        while (_keepReceiveRunning && Client.ReadAndProcessFrames(serverEndpoint, this, null, frameBuffer))
                         {
                         }
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        OnException?.Invoke(null, ex);
+                    }
                 }
             });
 
             _receiveThread.Start();
+            }
+            catch (Exception ex)
+            {
+                OnException?.Invoke(null, ex);
+                throw;
+            }
         }
 
         /// <summary>
         /// Routes inbound packets to the appropriate handler.
         /// </summary>
-        public void ProcessFrameNotificationByConvention(DmContext context, IDmNotification payload)
+        public void ProcessFrameNotificationByConvention(DmContext context, IDmDatagram payload)
         {
+            try
+            {
             //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnNotificationReceived() event.
             if (ReflectionCache.RouteToNotificationHander(context, payload))
             {
@@ -218,6 +286,12 @@ namespace NTDLS.DatagramMessaging
             }
 
             OnNotificationReceived?.Invoke(context, payload);
+            }
+            catch (Exception ex)
+            {
+                OnException?.Invoke(null, ex);
+                throw;
+            }
         }
     }
 }

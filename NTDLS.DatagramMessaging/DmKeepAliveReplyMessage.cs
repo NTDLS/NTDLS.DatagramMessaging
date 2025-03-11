@@ -7,7 +7,7 @@ namespace NTDLS.DatagramMessaging
     /// This is discarded by the receive thread.
     /// </summary>
     public class DmKeepAliveReplyMessage
-        : IDmNotification, IDmKeepAliveMessage
+        : IDmDatagram, IDmKeepAliveMessage
     {
         /// <summary>
         /// The date-time that the keep-alive packet was sent.

@@ -13,37 +13,40 @@ namespace NTDLS.DatagramMessaging
     public class DmClient :
         IDmMessenger
     {
-        private static readonly Random _random = new();
-        private bool _keepRunning = false;
+        private bool _keepReceiveRunning = false;
         private bool _keepKeepAliveRunning = false;
         private Thread? _receiveThread = null;
         private Thread? _keepAliveThread = null;
 
-        #region Events.
+        #region Event: OnNotificationReceived.
 
         /// <summary>
         /// Event fired when a notification is received from a client.
         /// </summary>
-        public event NotificationReceivedEvent? OnNotificationReceived;
+        public event NotificationReceivedHandler? OnNotificationReceived;
 
         /// <summary>
         /// Event fired when a notification is received from a client.
         /// </summary>
         /// <param name="context">Information about the connection.</param>
         /// <param name="notification">Interface containing the instance of the notification class.</param>
-        public delegate void NotificationReceivedEvent(DmContext context, IDmNotification notification);
+        public delegate void NotificationReceivedHandler(DmContext context, IDmDatagram notification);
+
+        #endregion
+
+        #region Event: OnKeepAliveReceived.
 
         /// <summary>
         /// Event fired when a keep-alive notification is received.
         /// </summary>
-        public event KeepAliveReceivedEvent? OnKeepAliveReceived;
+        public event KeepAliveReceivedHandler? OnKeepAliveReceived;
 
         /// <summary>
         /// Event fired when a keep-alive notification is received.
         /// </summary>
         /// <param name="context">Information about the connection.</param>
         /// <param name="keepAlive">Instance of the keep-alive class that was received.</param>
-        public delegate void KeepAliveReceivedEvent(DmContext context, IDmKeepAliveMessage keepAlive);
+        public delegate void KeepAliveReceivedHandler(DmContext context, IDmKeepAliveMessage keepAlive);
 
         /// <summary>
         /// Event fired when a keep-alive notification is received.
@@ -54,6 +57,40 @@ namespace NTDLS.DatagramMessaging
             => OnKeepAliveReceived?.Invoke(context, keepAlive);
 
         #endregion
+
+        #region Event: OnException
+
+        /// <summary>
+        /// Event fired when a keep-alive notification is received.
+        /// </summary>
+        public event OnExceptionHander? OnException;
+
+        /// <summary>
+        /// Event fired when a keep-alive notification is received.
+        /// </summary>
+        /// <param name="context">Information about the connection.</param>
+        /// <param name="ex">information about the exception that occurred.</param>
+        public delegate void OnExceptionHander(DmContext? context, Exception ex);
+
+        /// <summary>
+        /// Event fired when a keep-alive notification is received.
+        /// </summary>
+        /// <param name="context">Information about the connection.</param>
+        /// <param name="ex">information about the exception that occurred.</param>
+        public void InvokeOnException(DmContext? context, Exception ex)
+            => OnException?.Invoke(context, ex);
+
+        #endregion
+
+        /// <summary>
+        /// Denotes whether the receive thread is active.
+        /// </summary>
+        public bool IsReceiveRunning { get { return _keepReceiveRunning; } }
+
+        /// <summary>
+        /// Denotes whether the keep-alive is active.
+        /// </summary>
+        public bool IsKeepAliveRunning { get { return _keepKeepAliveRunning; } }
 
         /// <summary>
         /// When true, notifications are queued in a thread pool.
@@ -145,39 +182,48 @@ namespace NTDLS.DatagramMessaging
         /// </summary>
         public void StartKeepAlive(TimeSpan? interval = null)
         {
-            if (_keepAliveThread != null || _keepKeepAliveRunning)
+            try
             {
-                return;
-            }
-
-            _keepKeepAliveRunning = true;
-
-            interval ??= TimeSpan.FromSeconds(10);
-            DateTime? lastKeepAlive = null;
-
-            _keepAliveThread = new Thread(() =>
-            {
-                while (_keepKeepAliveRunning)
+                if (_keepAliveThread != null || _keepKeepAliveRunning)
                 {
-                    if (lastKeepAlive == null || (DateTime.UtcNow - lastKeepAlive.Value) > interval)
+                    return;
+                }
+
+                _keepKeepAliveRunning = true;
+
+                interval ??= TimeSpan.FromSeconds(10);
+                DateTime? lastKeepAlive = null;
+
+                _keepAliveThread = new Thread(() =>
+                {
+                    while (_keepKeepAliveRunning)
                     {
-                        lastKeepAlive = DateTime.UtcNow;
-                        if (Context.Endpoint != null)
+                        if (lastKeepAlive == null || (DateTime.UtcNow - lastKeepAlive.Value) > interval)
                         {
-                            try
+                            lastKeepAlive = DateTime.UtcNow;
+                            if (Context.Endpoint != null)
                             {
-                                Dispatch(new DmKeepAliveMessage());
-                            }
-                            catch
-                            {
+                                try
+                                {
+                                    Dispatch(new DmKeepAliveMessage());
+                                }
+                                catch(Exception ex)
+                                {
+                                    OnException?.Invoke(Context, ex);
+                                }
                             }
                         }
+                        Thread.Sleep(100);
                     }
-                    Thread.Sleep(100);
-                }
-            });
+                });
 
-            _keepAliveThread.Start();
+                _keepAliveThread.Start();
+            }
+            catch (Exception ex)
+            {
+                OnException?.Invoke(Context, ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -185,19 +231,27 @@ namespace NTDLS.DatagramMessaging
         /// </summary>
         public void StopKeepAlive(bool waitForCompletion = true)
         {
-            if (_keepAliveThread == null || !_keepKeepAliveRunning)
+            try
             {
-                return;
+                if (_keepAliveThread == null || !_keepKeepAliveRunning)
+                {
+                    return;
+                }
+
+                _keepKeepAliveRunning = false;
+
+                if (waitForCompletion)
+                {
+                    _keepAliveThread.Join();
+                }
+
+                _keepAliveThread = null;
             }
-
-            _keepKeepAliveRunning = false;
-
-            if (waitForCompletion)
+            catch (Exception ex)
             {
-                _keepAliveThread.Join();
+                OnException?.Invoke(Context, ex);
+                throw;
             }
-
-            _keepAliveThread = null;
         }
 
         /// <summary>
@@ -214,64 +268,91 @@ namespace NTDLS.DatagramMessaging
         /// </summary>
         public void Stop(bool waitForCompletion = true)
         {
-            if (_keepRunning)
+            try
             {
-                try { Client?.Close(); } catch { }
-                try { Client?.Dispose(); } catch { }
-
-                Client = null;
-
-                _keepRunning = false;
-                if (waitForCompletion)
+                if (_keepReceiveRunning)
                 {
-                    _receiveThread?.Join();
-                }
+                    try { Client?.Close(); } catch { }
+                    try { Client?.Dispose(); } catch { }
 
-                StopKeepAlive(waitForCompletion);
+                    Client = null;
+
+                    _keepReceiveRunning = false;
+                    if (waitForCompletion)
+                    {
+                        _receiveThread?.Join();
+                    }
+
+                    StopKeepAlive(waitForCompletion);
+                }
+            }
+            catch (Exception ex)
+            {
+                OnException?.Invoke(Context, ex);
+                throw;
             }
         }
 
         private void ListenAsync(int listenPort)
         {
-            if (Client == null)
+            try
             {
-                throw new Exception("The UDP client has not been initialized.");
-            }
-
-            FrameBuffer frameBuffer = new();
-            var serverEndpoint = new IPEndPoint(IPAddress.Any, listenPort);
-
-            _keepRunning = true;
-
-            _receiveThread = new Thread(o =>
-            {
-                while (_keepRunning)
+                if (Client == null)
                 {
-                    try
+                    throw new Exception("The UDP client has not been initialized.");
+                }
+
+                FrameBuffer frameBuffer = new();
+                var serverEndpoint = new IPEndPoint(IPAddress.Any, listenPort);
+
+                _keepReceiveRunning = true;
+
+                _receiveThread = new Thread(o =>
+                {
+                    while (_keepReceiveRunning)
                     {
-                        while (_keepRunning && Client.ReadAndProcessFrames(serverEndpoint, this, Context, frameBuffer))
+                        try
                         {
+                            while (_keepReceiveRunning && Client.ReadAndProcessFrames(serverEndpoint, this, Context, frameBuffer))
+                            {
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            OnException?.Invoke(Context, ex);
                         }
                     }
-                    catch { }
-                }
-            });
+                });
 
-            _receiveThread.Start();
+                _receiveThread.Start();
+            }
+            catch (Exception ex)
+            {
+                OnException?.Invoke(Context, ex);
+                throw;
+            }
         }
 
         /// <summary>
         /// Routes inbound packets to the appropriate handler.
         /// </summary>
-        public void ProcessFrameNotificationByConvention(DmContext context, IDmNotification payload)
+        public void ProcessFrameNotificationByConvention(DmContext context, IDmDatagram payload)
         {
-            //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnNotificationReceived() event.
-            if (ReflectionCache.RouteToNotificationHander(context, payload))
+            try
             {
-                return; //Notification was handled by handler routing.
-            }
+                //First we try to invoke functions that match the signature, if that fails we will fall back to invoking the OnNotificationReceived() event.
+                if (ReflectionCache.RouteToNotificationHander(context, payload))
+                {
+                    return; //Notification was handled by handler routing.
+                }
 
-            OnNotificationReceived?.Invoke(context, payload);
+                OnNotificationReceived?.Invoke(context, payload);
+            }
+            catch (Exception ex)
+            {
+                OnException?.Invoke(Context, ex);
+                throw;
+            }
         }
 
         #region DmContext passthrough.
@@ -279,7 +360,7 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Sends a return serialized message to the remote endpoint defined when the client was created.
         /// </summary>
-        public void Dispatch(IDmNotification payload)
+        public void Dispatch(IDmDatagram payload)
             => Context.Dispatch(payload);
 
         /// <summary>
@@ -291,19 +372,19 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Sends a serialized message to the specified endpoint.
         /// </summary>
-        public void Dispatch(string hostOrIPAddress, int port, IDmNotification payload)
+        public void Dispatch(string hostOrIPAddress, int port, IDmDatagram payload)
             => Context.Dispatch(hostOrIPAddress, port, payload);
 
         /// <summary>
         /// Sends a serialized message to the specified endpoint.
         /// </summary>
-        public void Dispatch(IPAddress ipAddress, int port, IDmNotification payload)
+        public void Dispatch(IPAddress ipAddress, int port, IDmDatagram payload)
             => Context.Dispatch(ipAddress, port, payload);
 
         /// <summary>
         /// Sends a serialized message to the specified endpoint.
         /// </summary>
-        public void Dispatch(IPEndPoint endpoint, IDmNotification payload)
+        public void Dispatch(IPEndPoint endpoint, IDmDatagram payload)
             => Context.Dispatch(endpoint, payload);
 
         /// <summary>

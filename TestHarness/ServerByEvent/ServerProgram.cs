@@ -16,7 +16,7 @@ namespace ServerByEvent
             dmServer.Stop();
         }
 
-        private static void UdpManager_OnNotificationReceived(DmContext context, IDmNotification payload)
+        private static void UdpManager_OnNotificationReceived(DmContext context, IDmDatagram payload)
         {
             if (payload is DmNotificationBytes bytes)
             {
