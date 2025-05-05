@@ -132,9 +132,11 @@ namespace NTDLS.DatagramMessaging
         /// </summary>
         public DmClient(string hostOrIpAddress, int port, bool canReceiveData = true)
         {
-            // Resolve the IP address (whether it's a host or IP)
-            var ipAddress = Dns.GetHostAddresses(hostOrIpAddress).FirstOrDefault(o => o.AddressFamily == AddressFamily.InterNetwork)
-                ?? throw new ArgumentException("Could not resolve host or IP address to an IPv4 address.", nameof(hostOrIpAddress));
+            var addresses = Dns.GetHostAddresses(hostOrIpAddress);
+
+            var ipAddress = addresses.FirstOrDefault(o => o.AddressFamily == AddressFamily.InterNetwork)
+                ?? addresses.FirstOrDefault(o => o.AddressFamily == AddressFamily.InterNetworkV6)
+                ?? throw new ArgumentException("Could not resolve IP address.", nameof(hostOrIpAddress));
 
             Client = new UdpClient(0);
             Context = new DmContext(this, Client, new IPEndPoint(ipAddress, port));
