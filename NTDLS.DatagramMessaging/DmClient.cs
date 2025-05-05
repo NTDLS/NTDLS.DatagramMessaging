@@ -1,6 +1,7 @@
 ﻿using NTDLS.DatagramMessaging.Framing;
 using NTDLS.DatagramMessaging.Internal;
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -129,10 +130,14 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Instantiates a managed UDP instance that sends data to the specified ip address and port.
         /// </summary>
-        public DmClient(string ipAddress, int port, bool canReceiveData = true)
+        public DmClient(string hostOrIpAddress, int port, bool canReceiveData = true)
         {
+            // Resolve the IP address (whether it's a host or IP)
+            var ipAddress = Dns.GetHostAddresses(hostOrIpAddress).FirstOrDefault(o => o.AddressFamily == AddressFamily.InterNetwork)
+                ?? throw new ArgumentException("Could not resolve host or IP address to an IPv4 address.", nameof(hostOrIpAddress));
+
             Client = new UdpClient(0);
-            Context = new DmContext(this, Client, new IPEndPoint(IPAddress.Parse(ipAddress), port));
+            Context = new DmContext(this, Client, new IPEndPoint(ipAddress, port));
             if (canReceiveData)
             {
                 ListenAsync(0);
