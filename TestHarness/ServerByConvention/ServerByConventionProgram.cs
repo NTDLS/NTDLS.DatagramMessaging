@@ -38,8 +38,16 @@ namespace ServerByConvention
 
                 datagram.Message += " - Received by ServerByConvention";
                 context.Dispatch(datagram); //Echo the datagram back to the sender.
-
             }
+
+            public static void DatagramHandler(DmContext context, MySecondUDPPacket datagram)
+            {
+                Console.WriteLine($"{datagram.Message}->{datagram.UID}->{datagram.TimeStamp}");
+
+                datagram.Message += " - Received by ServerByConvention";
+                context.Dispatch(datagram); //Echo the datagram back to the sender.
+            }
+
         }
     }
 }

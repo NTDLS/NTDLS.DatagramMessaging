@@ -25,6 +25,7 @@ namespace Client
             while (true)
             {
                 dmClient.Dispatch(new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
+                dmClient.Dispatch(new MySecondUDPPacket($"Packet#:{packetNumber++} "));
 
                 var randomBytes = new byte[100];
                 rand.NextBytes(randomBytes); // Fill array with random values
