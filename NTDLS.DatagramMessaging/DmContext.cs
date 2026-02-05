@@ -30,6 +30,9 @@ namespace NTDLS.DatagramMessaging
         /// </summary>
         public DmContext(IDmMessenger dmClient, UdpClient client, IPEndPoint? endpoint)
         {
+            _compressionProvider = dmClient.GetCompressionProvider();
+            _cryptographyProvider = dmClient.GetCryptographyProvider();
+
             Messenger = dmClient;
             Client = client;
             Endpoint = endpoint;
@@ -126,6 +129,15 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Sends a return serialized message to the remote endpoint via NAT.
         /// </summary>
+        public void Dispatch(IDmDatagram datagram, string hostOrIPAddress, int port)
+        {
+            if (Client == null) throw new Exception("The UDP client has not been initialized.");
+            Client.Dispatch(this, datagram, hostOrIPAddress, port);
+        }
+
+        /// <summary>
+        /// Sends a return serialized message to the remote endpoint via NAT.
+        /// </summary>
         public void Dispatch(IDmDatagram datagram)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
@@ -140,6 +152,15 @@ namespace NTDLS.DatagramMessaging
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
             Client.Dispatch(this, bytes, iPEndPoint);
+        }
+
+        /// <summary>
+        /// Sends a frame containing the given bytes to the remote endpoint via NAT.
+        /// </summary>
+        public void Dispatch(byte[] bytes, string hostOrIPAddress, int port)
+        {
+            if (Client == null) throw new Exception("The UDP client has not been initialized.");
+            Client.Dispatch(this, bytes, hostOrIPAddress, port);
         }
 
         /// <summary>

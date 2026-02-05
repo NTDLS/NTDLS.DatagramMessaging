@@ -9,8 +9,10 @@ namespace Client
         {
             var dmClient = new DmClient();
 
-            dmClient.Connect("127.0.0.1", TestHarnessConstants.ServerPort);
+            dmClient.SetCompressionProvider(new DmBrotliCompressionProvider());
+            dmClient.SetCryptographyProvider(new DmAesCryptographyProvider("This is my password"));
 
+            dmClient.Connect("127.0.0.1", TestHarnessConstants.ServerPort);
             dmClient.Listen(DmClient.GetRandomUnusedUdpPort());
 
             dmClient.OnDatagramReceived += UdpManager_OnDatagramReceived;

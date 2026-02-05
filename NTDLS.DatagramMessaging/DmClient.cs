@@ -4,7 +4,6 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.Cryptography;
 using System.Threading;
 
 namespace NTDLS.DatagramMessaging
@@ -84,6 +83,75 @@ namespace NTDLS.DatagramMessaging
 
         #endregion
 
+        #region IDmCompressionProvider.
+
+        /// <summary>
+        /// Gets the default compression provider used for compression and decompression operations.
+        /// </summary>
+        public IDmCompressionProvider? DefaultCompressionProvider { get; private set; }
+
+        /// <summary>
+        /// Sets the compression provider that this client should use when sending/receiving data.
+        /// Can be cleared by passing null or calling ClearCompressionProvider().
+        /// </summary>
+        /// <param name="provider"></param>
+        public void SetCompressionProvider(IDmCompressionProvider? provider)
+        {
+            DefaultCompressionProvider = provider;
+            Context?.SetCompressionProvider(provider);
+        }
+
+        /// <summary>
+        /// Gets the current custom compression provider, if any.
+        /// </summary>
+        public IDmCompressionProvider? GetCompressionProvider()
+            => DefaultCompressionProvider;
+
+        /// <summary>
+        /// Removes the compression provider set by a previous call to SetCompressionProvider().
+        /// </summary>
+        public void ClearCompressionProvider()
+        {
+            DefaultCompressionProvider = null;
+            Context?.SetCryptographyProvider(null);
+        }
+
+        #endregion
+
+        #region IDmCryptographyProvider.
+
+        /// <summary>
+        /// Gets the default cryptography provider used for encryption and decryption operations.
+        /// </summary>
+        public IDmCryptographyProvider? DefaultCryptographyProvider { get; private set; }
+
+        /// <summary>
+        /// Sets the encryption provider that this client should use when sending/receiving data. Can be cleared by passing null or calling ClearCryptographyProvider().
+        /// </summary>
+        /// <param name="provider"></param>
+        public void SetCryptographyProvider(IDmCryptographyProvider? provider)
+        {
+            DefaultCryptographyProvider = provider;
+            Context?.SetCryptographyProvider(provider);
+        }
+
+        /// <summary>
+        /// Gets the current custom cryptography provider, if any.
+        /// </summary>
+        public IDmCryptographyProvider? GetCryptographyProvider()
+            => DefaultCryptographyProvider;
+
+        /// <summary>
+        /// Removes the encryption provider set by a previous call to SetCryptographyProvider().
+        /// </summary>
+        public void ClearCryptographyProvider()
+        {
+            DefaultCryptographyProvider = null;
+            Context?.SetCryptographyProvider(null);
+        }
+
+        #endregion
+
         /// <summary>
         /// Denotes whether the receive thread is active.
         /// </summary>
@@ -116,7 +184,7 @@ namespace NTDLS.DatagramMessaging
         public DmContext? Context { get; private set; }
 
         /// <summary>
-        /// Instantiates a managed UDP instance that sends data to the specified ip address and port.
+        /// Instantiates a managed UDP client that sends data to the specified IP address and port by default.
         /// </summary>
         public void Connect(IPAddress ipAddress, int port)
         {
@@ -127,7 +195,7 @@ namespace NTDLS.DatagramMessaging
         }
 
         /// <summary>
-        /// Instantiates a managed UDP instance that sends data to the specified ip address and port.
+        /// Instantiates a managed UDP client that sends data to the specified host name or IP address and port by default.
         /// </summary>
         public void Connect(string hostOrIpAddress, int port)
         {
@@ -144,7 +212,7 @@ namespace NTDLS.DatagramMessaging
         }
 
         /// <summary>
-        /// Instantiates a managed UDP instance that sends data to the specified ip endpoint.
+        /// Instantiates a managed UDP client that sends data to the specified endpoint by default.
         /// </summary>
         public void Connect(IPEndPoint ipEndpoint)
         {

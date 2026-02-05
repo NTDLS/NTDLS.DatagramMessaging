@@ -96,45 +96,36 @@ namespace NTDLS.DatagramMessaging.Internal
         {
             var datagramType = datagram.GetType();
 
-            if (DmCaching.TryGet<MethodInfo>(datagramType, out var cached) && cached != null)
+            return DmCaching.GetOrCreateOneMinute(datagramType, (o) =>
             {
-                return cached;
-            }
-
-            if (datagramType.IsGenericType && cachedMethod.Method.IsGenericMethod == true)
-            {
-                //If both the datagram and the handler function are generic, We need to create a
-                //  generic version of the handler function using the generic types of the datagram.
-
-                // Get the generic type definition and its assembly name
-                var typeDefinitionName = datagramType.GetGenericTypeDefinition().FullName
-                     ?? throw new Exception("The generic type name is not available.");
-
-                var assemblyName = datagramType.Assembly.FullName
-                     ?? throw new Exception("The generic assembly type name is not available.");
-
-                // Recursively get the AssemblyQualifiedName of generic arguments
-                var genericTypeArguments = datagramType.GetGenericArguments()
-                    .Select(t => Type.GetType(t.AssemblyQualifiedName ?? Reflection.GetAssemblyQualifiedTypeName(t))
-                     ?? throw new Exception($"The generic assembly type [{t.AssemblyQualifiedName}] could not be instantiated.")
-                    ).ToArray();
-
-                if (genericTypeArguments == null)
+                if (datagramType.IsGenericType && cachedMethod.Method.IsGenericMethod == true)
                 {
-                    throw new Exception("The generic assembly type could not be instantiated.");
+                    //If both the datagram and the handler function are generic, We need to create a
+                    //  generic version of the handler function using the generic types of the datagram.
+
+                    // Get the generic type definition and its assembly name
+                    var typeDefinitionName = datagramType.GetGenericTypeDefinition().FullName
+                         ?? throw new Exception("The generic type name is not available.");
+
+                    var assemblyName = datagramType.Assembly.FullName
+                         ?? throw new Exception("The generic assembly type name is not available.");
+
+                    // Recursively get the AssemblyQualifiedName of generic arguments
+                    var genericTypeArguments = datagramType.GetGenericArguments()
+                        .Select(t => Type.GetType(t.AssemblyQualifiedName ?? Reflection.GetAssemblyQualifiedTypeName(t))
+                         ?? throw new Exception($"The generic assembly type [{t.AssemblyQualifiedName}] could not be instantiated.")
+                        ).ToArray() ?? throw new Exception("The generic assembly type could not be instantiated.");
+
+                    var genericMethod = cachedMethod.Method.MakeGenericMethod(genericTypeArguments)
+                        ?? throw new Exception("The generic assembly type could not be instantiated.");
+
+                    return genericMethod;
                 }
-
-                var genericMethod = cachedMethod.Method.MakeGenericMethod(genericTypeArguments)
-                    ?? throw new Exception("The generic assembly type could not be instantiated.");
-
-                DmCaching.SetOneMinute(datagramType, genericMethod);
-
-                return genericMethod;
-            }
-            else
-            {
-                return cachedMethod.Method;
-            }
+                else
+                {
+                    return cachedMethod.Method;
+                }
+            });
         }
 
         /// <summary>

@@ -8,6 +8,8 @@ namespace ServerByConvention
         static void Main()
         {
             var dmServer = new DmClient();
+            dmServer.SetCompressionProvider(new DmBrotliCompressionProvider());
+            dmServer.SetCryptographyProvider(new DmAesCryptographyProvider("This is my password"));
 
             dmServer.OnException += DmServer_OnException;
             dmServer.AddHandler(new HandlePackets());
