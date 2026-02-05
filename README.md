@@ -12,16 +12,13 @@ and compression with optional overloads.
 ```csharp
 static void Main()
 {
-    var dmServer = new DmServer(1234);
+    var udpManager = new DmClient();
 
-    //Typically a good idea to hook the exception handler.
-    //dmServer.OnException += DmServer_OnException;
+    udpManager.OnDatagramReceived += UdpManager_OnDatagramReceived;
 
-    dmServer.OnDatagramReceived += UdpManager_OnDatagramReceived;
+    udpManager.Listen(1234);
 
-    Console.ReadLine();
-
-    dmServer.Stop();
+    udpManager.Stop();
 }
 
 private static void UdpManager_OnDatagramReceived(DmContext context, IDmDatagram datagram)
@@ -41,16 +38,14 @@ private static void UdpManager_OnDatagramReceived(DmContext context, IDmDatagram
 ```csharp
 static void Main()
 {
-    var dmServer = new DmServer(1234);
+    var udpManager = new DmClient();
 
-    //Typically a good idea to hook the exception handler.
-    //dmServer.OnException += DmServer_OnException;
-
-    dmServer.AddHandler(new HandlePackets());
+    udpManager.AddHandler(new HandlePackets());
+    udpManager.Listen(1234);
 
     Console.ReadLine();
 
-    dmServer.Stop();
+    udpManager.Stop();
 }
 
 private class HandlePackets : IDmMessageHandler
@@ -67,27 +62,29 @@ private class HandlePackets : IDmMessageHandler
 ```
 
 ## UDP Client:
-> Here we are instantiating a DmMessenger without a a listen port. This means that this this
-> manager is in write-only mode. We are going to loop and send frames containing serialized MyFirstUDPPacket.
+> Here we are instantiating a DmMessenger without a listen port. This means that this this
+> manager is in write-only mode. Note that we could also receive data by calling Listen().
+We are going to loop and send frames containing serialized MyFirstUDPPacket.
 ```csharp
 static void Main()
 {
-    var dmClient = new DmClient("127.0.0.1", 1234);
+    var udpManager = new DmClient();
 
-    //Typically a good idea to hook the exception handler.
-    //dmClient.OnException += DmServer_OnException;
+    udpManager.Connect("127.0.0.1", 1234);
+
+    udpManager.OnDatagramReceived += UdpManager_OnDatagramReceived;
 
     int packetNumber = 0;
 
     while (true)
     {
-        dmClient.Dispatch(new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
+        udpManager.Dispatch(new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
         Thread.Sleep(10);
     }
 
     Console.ReadLine();
 
-    dmClient.Stop();
+    udpManager.Stop();
 }
 ```
 
