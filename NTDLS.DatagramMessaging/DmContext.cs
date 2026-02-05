@@ -21,7 +21,7 @@ namespace NTDLS.DatagramMessaging
         public UdpClient Client { get; private set; }
 
         /// <summary>
-        /// The IP endpoint which can be used to reply to the message.
+        /// The endpoint associated with this context.
         /// </summary>
         public IPEndPoint? Endpoint { get; private set; }
 
@@ -30,11 +30,15 @@ namespace NTDLS.DatagramMessaging
         /// </summary>
         public DmContext(IDmMessenger dmClient, UdpClient client, IPEndPoint? endpoint)
         {
-            Endpoint = endpoint;
             Messenger = dmClient;
             Client = client;
+            Endpoint = endpoint;
         }
 
+        /// <summary>
+        /// Sets the network endpoint associated with this instance.
+        /// </summary>
+        /// <param name="endpoint">The network endpoint to associate with this instance. Cannot be null.</param>
         internal void SetEndpoint(IPEndPoint endpoint)
         {
             Endpoint = endpoint;
@@ -113,11 +117,29 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Sends a return serialized message to the remote endpoint via NAT.
         /// </summary>
+        public void Dispatch(IDmDatagram datagram, IPEndPoint iPEndPoint)
+        {
+            if (Client == null) throw new Exception("The UDP client has not been initialized.");
+            Client.Dispatch(this, datagram, iPEndPoint);
+        }
+
+        /// <summary>
+        /// Sends a return serialized message to the remote endpoint via NAT.
+        /// </summary>
         public void Dispatch(IDmDatagram datagram)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
-            if (Endpoint == null) throw new Exception("The UDP endpoint has not been defined.");
-            Client.Dispatch(this, Endpoint, datagram);
+            if (Endpoint == null) throw new Exception("The endpoint has not been set for this context.");
+            Client.Dispatch(this, datagram, Endpoint);
+        }
+
+        /// <summary>
+        /// Sends a frame containing the given bytes to the remote endpoint via NAT.
+        /// </summary>
+        public void Dispatch(byte[] bytes, IPEndPoint iPEndPoint)
+        {
+            if (Client == null) throw new Exception("The UDP client has not been initialized.");
+            Client.Dispatch(this, bytes, iPEndPoint);
         }
 
         /// <summary>
@@ -126,62 +148,8 @@ namespace NTDLS.DatagramMessaging
         public void Dispatch(byte[] bytes)
         {
             if (Client == null) throw new Exception("The UDP client has not been initialized.");
-            if (Endpoint == null) throw new Exception("The UDP endpoint has not been defined.");
-            Client.Dispatch(this, Endpoint, bytes);
-        }
-
-        /// <summary>
-        /// Sends a serialized message to the specified endpoint.
-        /// </summary>
-        public void Dispatch(string hostOrIPAddress, int port, IDmDatagram datagram)
-        {
-            if (Client == null) throw new Exception("The UDP client has not been initialized.");
-            Client.Dispatch(this, hostOrIPAddress, port, datagram);
-        }
-
-        /// <summary>
-        /// Sends a serialized message to the specified endpoint.
-        /// </summary>
-        public void Dispatch(IPAddress ipAddress, int port, IDmDatagram datagram)
-        {
-            if (Client == null) throw new Exception("The UDP client has not been initialized.");
-            Client.Dispatch(this, ipAddress, port, datagram);
-        }
-
-        /// <summary>
-        /// Sends a serialized message to the specified endpoint.
-        /// </summary>
-        public void Dispatch(IPEndPoint endpoint, IDmDatagram datagram)
-        {
-            if (Client == null) throw new Exception("The UDP client has not been initialized.");
-            Client.Dispatch(this, endpoint, datagram);
-        }
-
-        /// <summary>
-        /// Sends a frame containing the given bytes to the specified endpoint.
-        /// </summary>
-        public void Dispatch(string hostOrIPAddress, int port, byte[] bytes)
-        {
-            if (Client == null) throw new Exception("The UDP client has not been initialized.");
-            Client.Dispatch(this, hostOrIPAddress, port, bytes);
-        }
-
-        /// <summary>
-        /// Sends a frame containing the given bytes to the specified endpoint.
-        /// </summary>
-        public void Dispatch(IPAddress ipAddress, int port, byte[] bytes)
-        {
-            if (Client == null) throw new Exception("The UDP client has not been initialized.");
-            Client.Dispatch(this, ipAddress, port, bytes);
-        }
-
-        /// <summary>
-        /// Sends a frame containing the given bytes to the specified endpoint.
-        /// </summary>
-        public void Dispatch(IPEndPoint endpoint, byte[] bytes)
-        {
-            if (Client == null) throw new Exception("The UDP client has not been initialized.");
-            Client.Dispatch(this, endpoint, bytes);
+            if (Endpoint == null) throw new Exception("The endpoint has not been set for this context.");
+            Client.Dispatch(this, bytes, Endpoint);
         }
     }
 }

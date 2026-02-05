@@ -7,7 +7,11 @@ namespace Client
     {
         static void Main()
         {
-            var dmClient = new DmClient("127.0.0.1", 1234);
+            var dmClient = new DmClient();
+
+            dmClient.Connect("127.0.0.1", TestHarnessConstants.ServerPort);
+
+            dmClient.Listen(DmClient.GetRandomUnusedUdpPort());
 
             dmClient.OnDatagramReceived += UdpManager_OnDatagramReceived;
             dmClient.OnException += DmClient_OnException;

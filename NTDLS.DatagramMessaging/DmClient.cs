@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Threading;
 
 namespace NTDLS.DatagramMessaging
@@ -112,25 +113,23 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// Contains information about the endpoint and the connection.
         /// </summary>
-        public DmContext Context { get; private set; }
+        public DmContext? Context { get; private set; }
 
         /// <summary>
         /// Instantiates a managed UDP instance that sends data to the specified ip address and port.
         /// </summary>
-        public DmClient(IPAddress ipAddress, int port, bool canReceiveData = true)
+        public void Connect(IPAddress ipAddress, int port)
         {
-            Client = new UdpClient(0);
-            Context = new DmContext(this, Client, new IPEndPoint(ipAddress, port));
-            if (canReceiveData)
-            {
-                ListenAsync(0);
-            }
+            Client = new UdpClient();
+
+            var endpoint = new IPEndPoint(ipAddress, port);
+            Context = new DmContext(this, Client, endpoint);
         }
 
         /// <summary>
         /// Instantiates a managed UDP instance that sends data to the specified ip address and port.
         /// </summary>
-        public DmClient(string hostOrIpAddress, int port, bool canReceiveData = true)
+        public void Connect(string hostOrIpAddress, int port)
         {
             var addresses = Dns.GetHostAddresses(hostOrIpAddress);
 
@@ -138,49 +137,65 @@ namespace NTDLS.DatagramMessaging
                 ?? addresses.FirstOrDefault(o => o.AddressFamily == AddressFamily.InterNetworkV6)
                 ?? throw new ArgumentException("Could not resolve IP address.", nameof(hostOrIpAddress));
 
-            Client = new UdpClient(0);
-            Context = new DmContext(this, Client, new IPEndPoint(ipAddress, port));
-            if (canReceiveData)
-            {
-                ListenAsync(0);
-            }
+            Client = new UdpClient();
+
+            var endpoint = new IPEndPoint(ipAddress, port);
+            Context = new DmContext(this, Client, endpoint);
         }
 
         /// <summary>
         /// Instantiates a managed UDP instance that sends data to the specified ip endpoint.
         /// </summary>
-        public DmClient(IPEndPoint ipEndpoint, bool canReceiveData = true)
+        public void Connect(IPEndPoint ipEndpoint)
         {
-            Client = new UdpClient(0);
-            Context = new DmContext(this, Client, ipEndpoint);
-            if (canReceiveData)
-            {
-                ListenAsync(0);
-            }
+            Client ??= new UdpClient();
+            Context ??= new DmContext(this, Client, ipEndpoint);
         }
 
         /// <summary>
-        /// Instantiates a managed UDP instance that without a defined destination endpoint.
+        /// Instantiates a managed UDP instance without a defined destination endpoint.
         /// </summary>
-        public DmClient(bool canReceiveData = true)
+        public void Listen(int listenPort)
         {
-            Client = new UdpClient();
-            Context = new DmContext(this, Client, null);
-            if (canReceiveData)
+            try
             {
-                ListenAsync(0);
+                var frameBuffer = new FrameBuffer();
+                var serverEndpoint = new IPEndPoint(IPAddress.Any, listenPort);
+
+                Client ??= new UdpClient();
+                Context ??= new DmContext(this, Client, null);
+
+                Client.Client.Bind(serverEndpoint);
+
+                _keepReceiveRunning = true;
+
+                _receiveThread = new Thread(o =>
+                {
+                    while (_keepReceiveRunning)
+                    {
+                        try
+                        {
+                            while (_keepReceiveRunning && Client.ReadAndProcessFrames(serverEndpoint, this, Context, frameBuffer))
+                            {
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            OnException?.Invoke(Context, ex);
+                        }
+                    }
+                })
+                {
+                    IsBackground = true
+                };
+
+                _receiveThread.Start();
             }
-        }
-
-        /// <summary>
-        /// Clean up any remaining resources.
-        /// </summary>
-        ~DmClient()
-        {
-            try { Client?.Close(); } catch { }
-            try { Client?.Dispose(); } catch { }
-
-            Client = null;
+            catch (Exception ex)
+            {
+                OnException?.Invoke(Context, ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -208,11 +223,11 @@ namespace NTDLS.DatagramMessaging
                         if (lastKeepAlive == null || (DateTime.UtcNow - lastKeepAlive.Value) > interval)
                         {
                             lastKeepAlive = DateTime.UtcNow;
-                            if (Context.Endpoint != null)
+                            if (Context?.Endpoint != null)
                             {
                                 try
                                 {
-                                    Dispatch(new DmKeepAliveDatagram());
+                                    Dispatch(new DmKeepAliveDatagram(), Context.Endpoint);
                                 }
                                 catch (Exception ex)
                                 {
@@ -220,6 +235,7 @@ namespace NTDLS.DatagramMessaging
                                 }
                             }
                         }
+
                         Thread.Sleep(100);
                     }
                 });
@@ -279,11 +295,6 @@ namespace NTDLS.DatagramMessaging
             {
                 if (_keepReceiveRunning)
                 {
-                    try { Client?.Close(); } catch { }
-                    try { Client?.Dispose(); } catch { }
-
-                    Client = null;
-
                     _keepReceiveRunning = false;
                     if (waitForCompletion)
                     {
@@ -291,47 +302,12 @@ namespace NTDLS.DatagramMessaging
                     }
 
                     StopKeepAlive(waitForCompletion);
+
+                    try { Client?.Close(); } catch { }
+                    try { Client?.Dispose(); } catch { }
+
+                    Client = null;
                 }
-            }
-            catch (Exception ex)
-            {
-                OnException?.Invoke(Context, ex);
-                throw;
-            }
-        }
-
-        private void ListenAsync(int listenPort)
-        {
-            try
-            {
-                if (Client == null)
-                {
-                    throw new Exception("The UDP client has not been initialized.");
-                }
-
-                FrameBuffer frameBuffer = new();
-                var serverEndpoint = new IPEndPoint(IPAddress.Any, listenPort);
-
-                _keepReceiveRunning = true;
-
-                _receiveThread = new Thread(o =>
-                {
-                    while (_keepReceiveRunning)
-                    {
-                        try
-                        {
-                            while (_keepReceiveRunning && Client.ReadAndProcessFrames(serverEndpoint, this, Context, frameBuffer))
-                            {
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            OnException?.Invoke(Context, ex);
-                        }
-                    }
-                });
-
-                _receiveThread.Start();
             }
             catch (Exception ex)
             {
@@ -368,50 +344,73 @@ namespace NTDLS.DatagramMessaging
         /// Sends a return serialized message to the remote endpoint defined when the client was created.
         /// </summary>
         public void Dispatch(IDmDatagram datagram)
-            => Context.Dispatch(datagram);
+        {
+            if (Context?.Endpoint == null) throw new Exception("The endpoint has not been set for this context.");
+            Context?.Dispatch(datagram, Context.Endpoint);
+        }
+
+        /// <summary>
+        /// Sends a return serialized message to the remote endpoint defined when the client was created.
+        /// </summary>
+        public void Dispatch(IDmDatagram datagram, IPEndPoint iPEndPoint)
+            => Context?.Dispatch(datagram, iPEndPoint);
 
         /// <summary>
         /// Sends a frame containing the given bytes to the remote endpoint defined when the client was created.
         /// </summary>
         public void Dispatch(byte[] bytes)
-            => Context.Dispatch(bytes);
+        {
+            if (Context?.Endpoint == null) throw new Exception("The endpoint has not been set for this context.");
+            Context?.Dispatch(bytes, Context.Endpoint);
+        }
 
         /// <summary>
-        /// Sends a serialized message to the specified endpoint.
+        /// Sends a frame containing the given bytes to the remote endpoint defined when the client was created.
         /// </summary>
-        public void Dispatch(string hostOrIPAddress, int port, IDmDatagram datagram)
-            => Context.Dispatch(hostOrIPAddress, port, datagram);
-
-        /// <summary>
-        /// Sends a serialized message to the specified endpoint.
-        /// </summary>
-        public void Dispatch(IPAddress ipAddress, int port, IDmDatagram datagram)
-            => Context.Dispatch(ipAddress, port, datagram);
-
-        /// <summary>
-        /// Sends a serialized message to the specified endpoint.
-        /// </summary>
-        public void Dispatch(IPEndPoint endpoint, IDmDatagram datagram)
-            => Context.Dispatch(endpoint, datagram);
-
-        /// <summary>
-        /// Sends a frame containing the given bytes to the specified endpoint.
-        /// </summary>
-        public void Dispatch(string hostOrIPAddress, int port, byte[] bytes)
-            => Context.Dispatch(hostOrIPAddress, port, bytes);
-
-        /// <summary>
-        /// Sends a frame containing the given bytes to the specified endpoint.
-        /// </summary>
-        public void Dispatch(IPAddress ipAddress, int port, byte[] bytes)
-            => Context.Dispatch(ipAddress, port, bytes);
-
-        /// <summary>
-        /// Sends a frame containing the given bytes to the specified endpoint.
-        /// </summary>
-        public void Dispatch(IPEndPoint endpoint, byte[] bytes)
-            => Context.Dispatch(endpoint, bytes);
+        public void Dispatch(byte[] bytes, IPEndPoint iPEndPoint)
+            => Context?.Dispatch(bytes, iPEndPoint);
 
         #endregion
+
+        /// <summary>
+        /// Gets a random and unused port number that can be used for listening.
+        /// </summary>
+        public static int GetRandomUnusedUdpPort()
+        {
+            return GetRandomUnusedUDPPort(1, 65534);
+        }
+
+        /// <summary>
+        /// Gets a random and unused port number that can be used for listening.
+        /// </summary>
+        public static int GetRandomUnusedUDPPort(int minPort, int maxPort)
+        {
+            while (true)
+            {
+                int port = Random.Shared.Next(minPort, maxPort + 1);
+                if (IsPortAvailable(port))
+                {
+                    return port;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Determines if a given UDP port is in use.
+        /// </summary>
+        public static bool IsPortAvailable(int port)
+        {
+            try
+            {
+                using var udpClient = new UdpClient(port);
+                return true;
+            }
+            catch (SocketException)
+            {
+                return false;
+            }
+        }
+
+
     }
 }
