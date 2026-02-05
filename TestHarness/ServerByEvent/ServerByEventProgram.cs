@@ -7,12 +7,14 @@ namespace ServerByEvent
     {
         static void Main()
         {
-            var dmServer = new DmServer(1234);
+            var dmServer = new DmClient();
+            dmServer.SetCompressionProvider(new DmBrotliCompressionProvider());
+            dmServer.SetCryptographyProvider(new DmAesCryptographyProvider("This is my password"));
 
             dmServer.OnDatagramReceived += UdpManager_OnDatagramReceived;
             dmServer.OnException += DmServer_OnException;
 
-            Console.ReadLine();
+            dmServer.Listen(TestHarnessConstants.ServerPort);
 
             dmServer.Stop();
         }

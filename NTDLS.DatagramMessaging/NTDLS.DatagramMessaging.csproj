@@ -9,15 +9,15 @@
     <Authors>NetworkDLS</Authors>
     <Company>NetworkDLS</Company>
     <Product>NTDLS.UDPPacketFraming</Product>
-    <Description>Set of classes and extensions methods that allow you to send/receive UDP packets with ease. It handles corruption checks, concatenation, fragmentation, serialization and adds compression.</Description>
-    <Copyright>Copyright © 2025 NetworkDLS</Copyright>
+    <Description>Set of classes and extensions methods that allow you to send/receive UDP packets with ease. Handling corruption checks, concatenation, fragmentation, serialization, compression and encryption.</Description>
+    <Copyright>Copyright © 2026 NetworkDLS</Copyright>
     <PackageProjectUrl>https://github.com/NTDLS/NTDLS.UDPPacketFraming</PackageProjectUrl>
     <RepositoryUrl>https://github.com/NTDLS/NTDLS.UDPPacketFraming</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageReleaseNotes>
       Dependency updates and introduced .net 10 support.
     </PackageReleaseNotes>
-    <Version>1.7.6</Version>
+    <Version>1.8.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>UDP;framing;network;io;datagram</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>

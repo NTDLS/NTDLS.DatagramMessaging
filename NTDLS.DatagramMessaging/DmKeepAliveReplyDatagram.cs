@@ -10,8 +10,8 @@ namespace NTDLS.DatagramMessaging
         : IDmDatagram, IDmKeepAliveDatagram
     {
         /// <summary>
-        /// The date-time that the keep-alive packet was sent.
+        /// The UTC date-time that the keep-alive packet was sent.
         /// </summary>
-        public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
+        public DateTime TimeStampUTC { get; set; } = DateTime.UtcNow;
     }
 }

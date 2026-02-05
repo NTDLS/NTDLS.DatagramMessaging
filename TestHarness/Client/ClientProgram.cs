@@ -7,7 +7,13 @@ namespace Client
     {
         static void Main()
         {
-            var dmClient = new DmClient("127.0.0.1", 1234);
+            var dmClient = new DmClient();
+
+            dmClient.SetCompressionProvider(new DmBrotliCompressionProvider());
+            dmClient.SetCryptographyProvider(new DmAesCryptographyProvider("This is my password"));
+
+            dmClient.Connect("127.0.0.1", TestHarnessConstants.ServerPort);
+            dmClient.Listen(DmClient.GetRandomUnusedUdpPort());
 
             dmClient.OnDatagramReceived += UdpManager_OnDatagramReceived;
             dmClient.OnException += DmClient_OnException;
@@ -21,6 +27,7 @@ namespace Client
             while (true)
             {
                 dmClient.Dispatch(new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
+                dmClient.Dispatch(new MySecondUDPPacket($"Packet#:{packetNumber++} "));
 
                 var randomBytes = new byte[100];
                 rand.NextBytes(randomBytes); // Fill array with random values

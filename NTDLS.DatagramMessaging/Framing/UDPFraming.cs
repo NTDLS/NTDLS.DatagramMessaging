@@ -47,11 +47,14 @@ namespace NTDLS.DatagramMessaging.Framing
                         //For the server, the context will be null because the endpoint is created via ReadData() when the NAT is established.
                         //Assuming the NAT is open for 30 seconds sans any activity, we are going to cache the context with a ~similar expiration.
                         var cacheKey = $"UPD.NAT.Context[{endpoint}]";
-                        if (!DmCaching.TryGet(cacheKey, out context) || context == null)
-                        {
-                            context = new DmContext(messenger, udpClient, endpoint);
-                            DmCaching.SetTenMinutes(cacheKey, context);
-                        }
+
+                        context = DmCaching.GetOrCreateTenMinutes(cacheKey, (o) =>
+                            new DmContext(messenger, udpClient, endpoint))
+                            ?? throw new Exception($"Failed to instantiate DmContext for {cacheKey}");
+                    }
+                    else if (context.Endpoint == null)
+                    {
+                        context.SetEndpoint(endpoint);
                     }
 
                     ProcessFrameBuffer(context, frameBuffer);
@@ -73,9 +76,31 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="udpClient">The client to send the data on.</param>
         /// <param name="context">Contains information about the endpoint and the connection.</param>
         /// <param name="datagram">The datagram that will be sent.</param>
+        /// <param name="iPEndPoint">The endpoint to send the datagram to.</param>
+        public static void Dispatch(this UdpClient udpClient, DmContext context, IDmDatagram datagram, IPEndPoint iPEndPoint)
+        {
+            try
+            {
+                var frameBody = new FrameBody(context.GetSerializationProvider(), datagram);
+                var frameBytes = AssembleFrame(context, frameBody);
+                udpClient.Send(frameBytes, frameBytes.Length, iPEndPoint);
+            }
+            catch (Exception ex)
+            {
+                context.Messenger.InvokeOnException(context, ex);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Sends a one-time fire-and-forget datagram.
+        /// </summary>
+        /// <param name="udpClient">The client to send the data on.</param>
+        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="datagram">The datagram that will be sent.</param>
         /// <param name="hostOrIPAddress">Host or IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
-        public static void Dispatch(this UdpClient udpClient, DmContext context, string hostOrIPAddress, int port, IDmDatagram datagram)
+        public static void Dispatch(this UdpClient udpClient, DmContext context, IDmDatagram datagram, string hostOrIPAddress, int port)
         {
             try
             {
@@ -96,15 +121,68 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="udpClient">The client to send the data on.</param>
         /// <param name="context">Contains information about the endpoint and the connection.</param>
         /// <param name="datagram">The datagram that will be sent.</param>
-        /// <param name="ipAddress">IP address to dispatch the datagram to.</param>
-        /// <param name="port">Port to dispatch the datagram to.</param>
-        public static void Dispatch(this UdpClient udpClient, DmContext context, IPAddress ipAddress, int port, IDmDatagram datagram)
+        public static void Dispatch(this UdpClient udpClient, DmContext context, IDmDatagram datagram)
         {
             try
             {
                 var frameBody = new FrameBody(context.GetSerializationProvider(), datagram);
                 var frameBytes = AssembleFrame(context, frameBody);
-                udpClient.Send(frameBytes, frameBytes.Length, new IPEndPoint(ipAddress, port));
+                udpClient.Send(frameBytes, frameBytes.Length);
+            }
+            catch (Exception ex)
+            {
+                context.Messenger.InvokeOnException(context, ex);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Sends a one-time fire-and-forget byte array datagram. These are and handled in ProcessDatagramCallback().
+        /// When a raw byte array is use, all json serialization is skipped and checks for this datagram type are prioritized for performance.
+        /// </summary>
+        /// <param name="udpClient">The client to send the data on.</param>
+        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="datagramBytes">The bytes will make up the body of the frame which is written.</param>
+        public static void Dispatch(this UdpClient udpClient, DmContext context, byte[] datagramBytes)
+        {
+            try
+            {
+                if (udpClient == null)
+                {
+                    throw new Exception("WriteBytesFrame: client can not be null.");
+                }
+
+                var frameBody = new FrameBody(datagramBytes);
+                var frameBytes = AssembleFrame(context, frameBody);
+                udpClient.Send(frameBytes, frameBytes.Length);
+            }
+            catch (Exception ex)
+            {
+                context.Messenger.InvokeOnException(context, ex);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Sends a one-time fire-and-forget byte array datagram. These are and handled in ProcessDatagramCallback().
+        /// When a raw byte array is use, all json serialization is skipped and checks for this datagram type are prioritized for performance.
+        /// </summary>
+        /// <param name="udpClient">The client to send the data on.</param>
+        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="datagramBytes">The bytes will make up the body of the frame which is written.</param>
+        /// <param name="iPEndPoint">The endpoint to send the datagram to.</param>
+        public static void Dispatch(this UdpClient udpClient, DmContext context, byte[] datagramBytes, IPEndPoint iPEndPoint)
+        {
+            try
+            {
+                if (udpClient == null)
+                {
+                    throw new Exception("WriteBytesFrame: client can not be null.");
+                }
+
+                var frameBody = new FrameBody(datagramBytes);
+                var frameBytes = AssembleFrame(context, frameBody);
+                udpClient.Send(frameBytes, frameBytes.Length, iPEndPoint);
             }
             catch (Exception ex)
             {
@@ -118,33 +196,10 @@ namespace NTDLS.DatagramMessaging.Framing
         /// </summary>
         /// <param name="udpClient">The client to send the data on.</param>
         /// <param name="context">Contains information about the endpoint and the connection.</param>
-        /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
-        /// <param name="datagram">The datagram that will be sent.</param>
-        public static void Dispatch(this UdpClient udpClient, DmContext context, IPEndPoint endpoint, IDmDatagram datagram)
-        {
-            try
-            {
-                var frameBody = new FrameBody(context.GetSerializationProvider(), datagram);
-                var frameBytes = AssembleFrame(context, frameBody);
-                udpClient.Send(frameBytes, frameBytes.Length, endpoint);
-            }
-            catch (Exception ex)
-            {
-                context.Messenger.InvokeOnException(context, ex);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Sends a one-time fire-and-forget byte array datagram. These are and handled in ProcessDatagramCallback().
-        /// When a raw byte array is use, all json serialization is skipped and checks for this datagram type are prioritized for performance.
-        /// </summary>
-        /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="context">Contains information about the endpoint and the connection.</param>
         /// <param name="datagramBytes">The bytes will make up the body of the frame which is written.</param>
         /// <param name="hostOrIPAddress">Host or IP address to dispatch the datagram to.</param>
         /// <param name="port">Port to dispatch the datagram to.</param>
-        public static void Dispatch(this UdpClient udpClient, DmContext context, string hostOrIPAddress, int port, byte[] datagramBytes)
+        public static void Dispatch(this UdpClient udpClient, DmContext context, byte[] datagramBytes, string hostOrIPAddress, int port)
         {
             try
             {
@@ -156,63 +211,6 @@ namespace NTDLS.DatagramMessaging.Framing
                 var frameBody = new FrameBody(datagramBytes);
                 var frameBytes = AssembleFrame(context, frameBody);
                 udpClient.Send(frameBytes, frameBytes.Length, hostOrIPAddress, port);
-            }
-            catch (Exception ex)
-            {
-                context.Messenger.InvokeOnException(context, ex);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Sends a one-time fire-and-forget byte array datagram. These are and handled in ProcessDatagramCallback().
-        /// When a raw byte array is use, all json serialization is skipped and checks for this datagram type are prioritized for performance.
-        /// </summary>
-        /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="context">Contains information about the endpoint and the connection.</param>
-        /// <param name="datagramBytes">The bytes will make up the body of the frame which is written.</param>
-        /// <param name="ipAddress">IP address to dispatch the datagram to.</param>
-        /// <param name="port">Port to dispatch the datagram to.</param>
-        public static void Dispatch(this UdpClient udpClient, DmContext context, IPAddress ipAddress, int port, byte[] datagramBytes)
-        {
-            try
-            {
-                if (udpClient == null)
-                {
-                    throw new Exception("WriteBytesFrame: client can not be null.");
-                }
-
-                var frameBody = new FrameBody(datagramBytes);
-                var frameBytes = AssembleFrame(context, frameBody);
-                udpClient.Send(frameBytes, frameBytes.Length, new IPEndPoint(ipAddress, port));
-            }
-            catch (Exception ex)
-            {
-                context.Messenger.InvokeOnException(context, ex);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Sends a one-time fire-and-forget byte array datagram. These are and handled in ProcessDatagramCallback().
-        /// When a raw byte array is use, all json serialization is skipped and checks for this datagram type are prioritized for performance.
-        /// </summary>
-        /// <param name="udpClient">The client to send the data on.</param>
-        /// <param name="context">Contains information about the endpoint and the connection.</param>
-        /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
-        /// <param name="datagramBytes">The bytes will make up the body of the frame which is written.</param>
-        public static void Dispatch(this UdpClient udpClient, DmContext context, IPEndPoint endpoint, byte[] datagramBytes)
-        {
-            try
-            {
-                if (udpClient == null)
-                {
-                    throw new Exception("WriteBytesFrame: client can not be null.");
-                }
-
-                var frameBody = new FrameBody(datagramBytes);
-                var frameBytes = AssembleFrame(context, frameBody);
-                udpClient.Send(frameBytes, frameBytes.Length, endpoint);
             }
             catch (Exception ex)
             {
@@ -230,7 +228,7 @@ namespace NTDLS.DatagramMessaging.Framing
                 var frameBodyBytes = Serialization.SerializeToByteArray(frameBody);
 
                 var compressedFrameBodyBytes = context.GetCompressionProvider()?.Compress(context, frameBodyBytes)
-                    ?? Compression.Compress(frameBodyBytes);
+                    ?? frameBodyBytes;
 
                 compressedFrameBodyBytes = context.GetCryptographyProvider()?.Encrypt(context, compressedFrameBodyBytes)
                     ?? compressedFrameBodyBytes;
@@ -338,7 +336,7 @@ namespace NTDLS.DatagramMessaging.Framing
                         ?? compressedFrameBodyBytes;
 
                     var frameBodyBytes = context.GetCompressionProvider()?.Decompress(context, compressedFrameBodyBytes)
-                        ?? Compression.Decompress(compressedFrameBodyBytes);
+                        ?? compressedFrameBodyBytes;
                     var frameBody = Serialization.DeserializeToObject<FrameBody>(frameBodyBytes);
 
                     //Zero out the consumed portion of the frame buffer - more for fun than anything else.
@@ -371,7 +369,8 @@ namespace NTDLS.DatagramMessaging.Framing
                         {
                             //Discard keep-alive message.
                             context.Messenger.InvokeOnKeepAlive(context, dmKeepAliveMessage);
-                            context.Dispatch(new DmKeepAliveReplyDatagram()); //Reply to the keep-alive request.
+                            if (context.Endpoint == null) throw new Exception("The endpoint has not been set for the keep-alive response context.");
+                            context.Dispatch(new DmKeepAliveReplyDatagram(), context.Endpoint); //Reply to the keep-alive request.
                         });
                     }
                     else if (datagram is DmKeepAliveReplyDatagram dmKeepAliveReply)
