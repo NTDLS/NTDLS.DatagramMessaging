@@ -44,13 +44,16 @@ namespace NTDLS.DatagramMessaging.Framing
         /// </summary>
         public int FrameBuilderLength = 0;
 
-        internal bool ReadData(UdpClient udpClient, ref IPEndPoint endPoint)
+        internal bool ReadData(UdpClient udpClient, IPEndPoint endPoint, out IPEndPoint? remoteEndpoint)
         {
+            remoteEndpoint = null;
+
             try
             {
                 try
                 {
-                    ReceiveBuffer = udpClient.Receive(ref endPoint);
+                    remoteEndpoint = endPoint;
+                    ReceiveBuffer = udpClient.Receive(ref remoteEndpoint);
                 }
                 catch (SocketException ex)
                 {

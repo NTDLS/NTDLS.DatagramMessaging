@@ -2,6 +2,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace NTDLS.DatagramMessaging
 {
@@ -11,9 +12,14 @@ namespace NTDLS.DatagramMessaging
     public class DmContext
     {
         /// <summary>
+        /// Gets a value indicating whether the component has been shut down.
+        /// </summary>
+        public bool IsShutdown { get; private set; } = false;
+
+        /// <summary>
         /// This is the RPC server or client instance.
         /// </summary>
-        public IDmMessenger Messenger { get; private set; }
+        public DmMessenger Messenger { get; private set; }
 
         /// <summary>
         /// The UDP client associated with this peer.
@@ -23,28 +29,37 @@ namespace NTDLS.DatagramMessaging
         /// <summary>
         /// The endpoint associated with this context.
         /// </summary>
-        public IPEndPoint? Endpoint { get; private set; }
+        public IPEndPoint Endpoint { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the round-trip time, in milliseconds, for a network operation.
+        /// </summary>
+        public double RoundTripTimeMilliseconds { get; internal set; }
+
+        /// <summary>
+        /// Gets the timestamp (UTC), when the most recent message was sent/received.
+        /// This is used to close the context if the remote endpoint becomes unresponsive which
+        /// is typically a sign that the remote endpoint has disconnected or is no longer reachable.
+        /// </summary>
+        public DateTime LastActivityUTC { get; internal set; } = DateTime.UtcNow;
 
         /// <summary>
         /// Creates a new DmContext instance for a client that sends data to the given IP endpoint.
         /// </summary>
-        public DmContext(IDmMessenger dmClient, UdpClient client, IPEndPoint? endpoint)
+        public DmContext(DmMessenger messenger, UdpClient client, IPEndPoint endpoint)
         {
-            _compressionProvider = dmClient.GetCompressionProvider();
-            _cryptographyProvider = dmClient.GetCryptographyProvider();
+            _compressionProvider = messenger.GetCompressionProvider();
+            _cryptographyProvider = messenger.GetCryptographyProvider();
 
-            Messenger = dmClient;
+            Messenger = messenger;
             Client = client;
             Endpoint = endpoint;
         }
 
-        /// <summary>
-        /// Sets the network endpoint associated with this instance.
-        /// </summary>
-        /// <param name="endpoint">The network endpoint to associate with this instance. Cannot be null.</param>
-        internal void SetEndpoint(IPEndPoint endpoint)
+        internal void Shutdown()
         {
-            Endpoint = endpoint;
+            IsShutdown = true;
+            StopKeepAlive();
         }
 
         #region IDmSerializationProvider.
@@ -117,6 +132,8 @@ namespace NTDLS.DatagramMessaging
 
         #endregion
 
+        #region Dispatch.
+
         /// <summary>
         /// Sends a return serialized message to the remote endpoint via NAT.
         /// </summary>
@@ -172,5 +189,58 @@ namespace NTDLS.DatagramMessaging
             if (Endpoint == null) throw new Exception("The endpoint has not been set for this context.");
             Client.Dispatch(this, bytes, Endpoint);
         }
+
+        #endregion
+
+        #region Keep-alive.
+
+        private readonly Lock _keepAliveLock = new();
+        private Timer? _keepAliveTimer;
+
+        /// <summary>
+        /// Sends transparent keep-alive messages to the server, default 10 seconds.
+        /// This is primarily to satisfy NAT reply port timeouts.
+        /// </summary>
+        public void StartKeepAlive(TimeSpan? interval = null)
+        {
+            interval ??= TimeSpan.FromSeconds(10);
+
+            lock (_keepAliveLock)
+            {
+                if (_keepAliveTimer != null)
+                    return;
+
+                _keepAliveTimer = new Timer(_ =>
+                {
+                    try
+                    {
+                        Dispatch(new DmKeepAliveDatagram(), Endpoint);
+                    }
+                    catch (Exception ex)
+                    {
+                        Messenger.InvokeOnException(this, ex);
+                    }
+                }, null, interval.Value, interval.Value);
+            }
+        }
+
+        /// <summary>
+        /// Stops the keep-alive thread, if its running.
+        /// </summary>
+        public void StopKeepAlive()
+        {
+            try
+            {
+                _keepAliveTimer?.Dispose();
+                _keepAliveTimer = null;
+            }
+            catch (Exception ex)
+            {
+                Messenger.InvokeOnException(this, ex);
+                throw;
+            }
+        }
+
+        #endregion
     }
 }

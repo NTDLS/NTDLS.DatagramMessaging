@@ -12,11 +12,9 @@ and compression with optional overloads.
 ```csharp
 static void Main()
 {
-    var udpManager = new DmClient();
+    var udpManager = new dmClient(1234);
 
     udpManager.OnDatagramReceived += UdpManager_OnDatagramReceived;
-
-    udpManager.Listen(1234);
 
     udpManager.Stop();
 }
@@ -38,10 +36,9 @@ private static void UdpManager_OnDatagramReceived(DmContext context, IDmDatagram
 ```csharp
 static void Main()
 {
-    var udpManager = new DmClient();
+    var udpManager = new DmClient(1234);
 
     udpManager.AddHandler(new HandlePackets());
-    udpManager.Listen(1234);
 
     Console.ReadLine();
 
@@ -68,9 +65,7 @@ We are going to loop and send frames containing serialized MyFirstUDPPacket.
 ```csharp
 static void Main()
 {
-    var udpManager = new DmClient();
-
-    udpManager.Connect("127.0.0.1", 1234);
+    var udpManager = new DmClient("127.0.0.1", 1234);
 
     udpManager.OnDatagramReceived += UdpManager_OnDatagramReceived;
 

@@ -7,17 +7,16 @@ namespace ServerByConvention
     {
         static void Main()
         {
-            var dmServer = new DmClient();
-            dmServer.SetCompressionProvider(new DmBrotliCompressionProvider());
-            dmServer.SetCryptographyProvider(new DmAesCryptographyProvider("This is my password"));
+            var messenger = new DmMessenger(TestHarnessConstants.ServerPort);
+            messenger.SetCompressionProvider(new DmBrotliCompressionProvider());
+            messenger.SetCryptographyProvider(new DmAesCryptographyProvider("This is my password"));
 
-            dmServer.OnException += DmServer_OnException;
-            dmServer.AddHandler(new HandlePackets());
-            dmServer.Listen(TestHarnessConstants.ServerPort);
+            messenger.OnException += DmServer_OnException;
+            messenger.AddHandler(new HandlePackets());
 
             Console.ReadLine();
 
-            dmServer.Stop();
+            messenger.Stop();
         }
 
         private static void DmServer_OnException(DmContext? context, Exception ex)

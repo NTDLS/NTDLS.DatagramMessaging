@@ -25,13 +25,12 @@ namespace NTDLS.DatagramMessaging.Framing
         /// Waits on bytes to become available, reads those bytes then parses the available frames (if any) and calls the appropriate callbacks.
         /// </summary>
         /// <param name="udpClient">The UDP client to receive data from.</param>
-        /// <param name="endpoint">Endpoint to dispatch the datagram to.</param>
+        /// <param name="serverEndpoint">Endpoint to dispatch the datagram to.</param>
         /// <param name="messenger">Parent client or server instance.</param>
-        /// <param name="context">Contains information about the endpoint and the connection.</param>
         /// <param name="frameBuffer">The frame buffer that will be used to receive bytes.</param>
         /// <returns>Returns true if bytes were received.</returns>
-        public static bool ReadAndProcessFrames(this UdpClient udpClient, IPEndPoint endpoint,
-            IDmMessenger messenger, DmContext? context, FrameBuffer frameBuffer)
+        public static bool ReadAndProcessFrames(this UdpClient udpClient, IPEndPoint serverEndpoint,
+            DmMessenger messenger, FrameBuffer frameBuffer)
         {
             try
             {
@@ -40,31 +39,27 @@ namespace NTDLS.DatagramMessaging.Framing
                     throw new Exception("ReadAndProcessFrames: client can not be null.");
                 }
 
-                if (frameBuffer.ReadData(udpClient, ref endpoint))
-                {
-                    if (context == null)
-                    {
-                        //For the server, the context will be null because the endpoint is created via ReadData() when the NAT is established.
-                        //Assuming the NAT is open for 30 seconds sans any activity, we are going to cache the context with a ~similar expiration.
-                        var cacheKey = $"UPD.NAT.Context[{endpoint}]";
+                var receiveEndpoint = serverEndpoint;
 
-                        context = DmCaching.GetOrCreateTenMinutes(cacheKey, (o) =>
-                            new DmContext(messenger, udpClient, endpoint))
-                            ?? throw new Exception($"Failed to instantiate DmContext for {cacheKey}");
-                    }
-                    else if (context.Endpoint == null)
-                    {
-                        context.SetEndpoint(endpoint);
-                    }
+                if (frameBuffer.ReadData(udpClient, serverEndpoint, out var remoteEndpoint) && remoteEndpoint != null)
+                {
+                    var context = messenger.GetEndpointContext(remoteEndpoint);
+
+                    context.LastActivityUTC = DateTime.UtcNow;
 
                     ProcessFrameBuffer(context, frameBuffer);
 
                     return true;
                 }
+                else if (remoteEndpoint != null)
+                {
+                    //Graceful disconnect.
+                    messenger.PeekEndpointContext(remoteEndpoint)?.Shutdown();
+                }
             }
             catch (Exception ex)
             {
-                messenger.InvokeOnException(context, ex);
+                messenger.InvokeOnException(null, ex);
             }
 
             return false;
@@ -81,6 +76,12 @@ namespace NTDLS.DatagramMessaging.Framing
         {
             try
             {
+                //Keep-alive messages are not considered activity for the purposes of updating the LastActivityUTC property.
+                if (datagram is not DmKeepAliveDatagram)
+                {
+                    context.LastActivityUTC = DateTime.UtcNow;
+                }
+
                 var frameBody = new FrameBody(context.GetSerializationProvider(), datagram);
                 var frameBytes = AssembleFrame(context, frameBody);
                 udpClient.Send(frameBytes, frameBytes.Length, iPEndPoint);
@@ -104,6 +105,12 @@ namespace NTDLS.DatagramMessaging.Framing
         {
             try
             {
+                //Keep-alive messages are not considered activity for the purposes of updating the LastActivityUTC property.
+                if (datagram is not DmKeepAliveDatagram)
+                {
+                    context.LastActivityUTC = DateTime.UtcNow;
+                }
+
                 var frameBody = new FrameBody(context.GetSerializationProvider(), datagram);
                 var frameBytes = AssembleFrame(context, frameBody);
                 udpClient.Send(frameBytes, frameBytes.Length, hostOrIPAddress, port);
@@ -125,6 +132,12 @@ namespace NTDLS.DatagramMessaging.Framing
         {
             try
             {
+                //Keep-alive messages are not considered activity for the purposes of updating the LastActivityUTC property.
+                if (datagram is not DmKeepAliveDatagram)
+                {
+                    context.LastActivityUTC = DateTime.UtcNow;
+                }
+
                 var frameBody = new FrameBody(context.GetSerializationProvider(), datagram);
                 var frameBytes = AssembleFrame(context, frameBody);
                 udpClient.Send(frameBytes, frameBytes.Length);
@@ -147,10 +160,7 @@ namespace NTDLS.DatagramMessaging.Framing
         {
             try
             {
-                if (udpClient == null)
-                {
-                    throw new Exception("WriteBytesFrame: client can not be null.");
-                }
+                context.LastActivityUTC = DateTime.UtcNow;
 
                 var frameBody = new FrameBody(datagramBytes);
                 var frameBytes = AssembleFrame(context, frameBody);
@@ -175,10 +185,7 @@ namespace NTDLS.DatagramMessaging.Framing
         {
             try
             {
-                if (udpClient == null)
-                {
-                    throw new Exception("WriteBytesFrame: client can not be null.");
-                }
+                context.LastActivityUTC = DateTime.UtcNow;
 
                 var frameBody = new FrameBody(datagramBytes);
                 var frameBytes = AssembleFrame(context, frameBody);
@@ -203,10 +210,7 @@ namespace NTDLS.DatagramMessaging.Framing
         {
             try
             {
-                if (udpClient == null)
-                {
-                    throw new Exception("WriteBytesFrame: client can not be null.");
-                }
+                context.LastActivityUTC = DateTime.UtcNow;
 
                 var frameBody = new FrameBody(datagramBytes);
                 var frameBytes = AssembleFrame(context, frameBody);
@@ -370,11 +374,14 @@ namespace NTDLS.DatagramMessaging.Framing
                             //Discard keep-alive message.
                             context.Messenger.InvokeOnKeepAlive(context, dmKeepAliveMessage);
                             if (context.Endpoint == null) throw new Exception("The endpoint has not been set for the keep-alive response context.");
-                            context.Dispatch(new DmKeepAliveReplyDatagram(), context.Endpoint); //Reply to the keep-alive request.
+                            context.Dispatch(new DmKeepAliveReplyDatagram(dmKeepAliveMessage.TimeStampUTC), context.Endpoint); //Reply to the keep-alive request.
                         });
                     }
                     else if (datagram is DmKeepAliveReplyDatagram dmKeepAliveReply)
                     {
+                        context.LastActivityUTC = DateTime.UtcNow;
+                        context.RoundTripTimeMilliseconds = (context.LastActivityUTC - dmKeepAliveReply.TimeStampUTC).Milliseconds;
+
                         Task.Run(() =>
                         {
                             //Discard keep-alive message.

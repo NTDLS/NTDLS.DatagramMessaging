@@ -7,39 +7,38 @@ namespace Client
     {
         static void Main()
         {
-            var dmClient = new DmClient();
+            var listenPort = DmMessenger.GetRandomUnusedUdpPort();
 
-            dmClient.SetCompressionProvider(new DmBrotliCompressionProvider());
-            dmClient.SetCryptographyProvider(new DmAesCryptographyProvider("This is my password"));
+            var messenger = new DmMessenger(listenPort);
+            Console.WriteLine($"Client listening on port:{listenPort}");
 
-            dmClient.Connect("127.0.0.1", TestHarnessConstants.ServerPort);
-            dmClient.Listen(DmClient.GetRandomUnusedUdpPort());
+            messenger.SetCompressionProvider(new DmBrotliCompressionProvider());
+            messenger.SetCryptographyProvider(new DmAesCryptographyProvider("This is my password"));
 
-            dmClient.OnDatagramReceived += UdpManager_OnDatagramReceived;
-            dmClient.OnException += DmClient_OnException;
+            messenger.OnDatagramReceived += UdpManager_OnDatagramReceived;
+            messenger.OnException += DmClient_OnException;
 
             var rand = new Random();
 
             int packetNumber = 0;
 
-            dmClient.StartKeepAlive();
+            var endpoint = messenger.GetEndpointContext("127.0.0.1", TestHarnessConstants.ServerPort);
 
             while (true)
             {
-                dmClient.Dispatch(new MyFirstUDPPacket($"Packet#:{packetNumber++} "));
-                dmClient.Dispatch(new MySecondUDPPacket($"Packet#:{packetNumber++} "));
+                messenger.Dispatch(new MyFirstUDPPacket($"Packet#:{packetNumber++} "), endpoint);
+                messenger.Dispatch(new MySecondUDPPacket($"Packet#:{packetNumber++} "), endpoint);
 
                 var randomBytes = new byte[100];
                 rand.NextBytes(randomBytes); // Fill array with random values
-
-                dmClient.Dispatch(randomBytes);
+                messenger.Dispatch(randomBytes, endpoint);
 
                 Thread.Sleep(10);
             }
 
             Console.ReadLine();
 
-            dmClient.Stop();
+            messenger.Stop();
         }
 
         private static void DmClient_OnException(DmContext? context, Exception ex)
