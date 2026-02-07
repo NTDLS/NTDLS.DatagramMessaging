@@ -22,16 +22,16 @@ namespace Client
 
             int packetNumber = 0;
 
-            var endpoint = messenger.GetEndpointContext("127.0.0.1", TestHarnessConstants.ServerPort);
+            var endpointCtx = messenger.GetEndpointContext("127.0.0.1", TestHarnessConstants.ServerPort);
 
             while (true)
             {
-                messenger.Dispatch(new MyFirstUDPPacket($"Packet#:{packetNumber++} "), endpoint);
-                messenger.Dispatch(new MySecondUDPPacket($"Packet#:{packetNumber++} "), endpoint);
+                messenger.Dispatch(new MyFirstUDPPacket($"Packet#:{packetNumber++} "), endpointCtx);
+                messenger.Dispatch(new MySecondUDPPacket($"Packet#:{packetNumber++} "), endpointCtx);
 
                 var randomBytes = new byte[100];
                 rand.NextBytes(randomBytes); // Fill array with random values
-                messenger.Dispatch(randomBytes, endpoint);
+                messenger.Dispatch(randomBytes, endpointCtx);
 
                 Thread.Sleep(10);
             }
