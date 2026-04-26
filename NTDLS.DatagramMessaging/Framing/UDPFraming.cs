@@ -74,6 +74,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="iPEndPoint">The endpoint to send the datagram to.</param>
         public static void Dispatch(this UdpClient udpClient, DmContext context, IDmDatagram datagram, IPEndPoint iPEndPoint)
         {
+            context.StreamWriteLock.Wait();
             try
             {
                 //Keep-alive messages are not considered activity for the purposes of updating the LastActivityUTC property.
@@ -90,6 +91,10 @@ namespace NTDLS.DatagramMessaging.Framing
             {
                 context.Messenger.InvokeOnException(context, ex);
                 throw;
+            }
+            finally
+            {
+                context.StreamWriteLock.Release();
             }
         }
 
@@ -103,6 +108,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="port">Port to dispatch the datagram to.</param>
         public static void Dispatch(this UdpClient udpClient, DmContext context, IDmDatagram datagram, string hostOrIPAddress, int port)
         {
+            context.StreamWriteLock.Wait();
             try
             {
                 //Keep-alive messages are not considered activity for the purposes of updating the LastActivityUTC property.
@@ -120,6 +126,10 @@ namespace NTDLS.DatagramMessaging.Framing
                 context.Messenger.InvokeOnException(context, ex);
                 throw;
             }
+            finally
+            {
+                context.StreamWriteLock.Release();
+            }
         }
 
         /// <summary>
@@ -130,6 +140,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="datagram">The datagram that will be sent.</param>
         public static void Dispatch(this UdpClient udpClient, DmContext context, IDmDatagram datagram)
         {
+            context.StreamWriteLock.Wait();
             try
             {
                 //Keep-alive messages are not considered activity for the purposes of updating the LastActivityUTC property.
@@ -147,6 +158,10 @@ namespace NTDLS.DatagramMessaging.Framing
                 context.Messenger.InvokeOnException(context, ex);
                 throw;
             }
+            finally
+            {
+                context.StreamWriteLock.Release();
+            }
         }
 
         /// <summary>
@@ -158,6 +173,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="datagramBytes">The bytes will make up the body of the frame which is written.</param>
         public static void Dispatch(this UdpClient udpClient, DmContext context, byte[] datagramBytes)
         {
+            context.StreamWriteLock.Wait();
             try
             {
                 context.LastActivityUTC = DateTime.UtcNow;
@@ -170,6 +186,10 @@ namespace NTDLS.DatagramMessaging.Framing
             {
                 context.Messenger.InvokeOnException(context, ex);
                 throw;
+            }
+            finally
+            {
+                context.StreamWriteLock.Release();
             }
         }
 
@@ -183,6 +203,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="iPEndPoint">The endpoint to send the datagram to.</param>
         public static void Dispatch(this UdpClient udpClient, DmContext context, byte[] datagramBytes, IPEndPoint iPEndPoint)
         {
+            context.StreamWriteLock.Wait();
             try
             {
                 context.LastActivityUTC = DateTime.UtcNow;
@@ -196,6 +217,10 @@ namespace NTDLS.DatagramMessaging.Framing
                 context.Messenger.InvokeOnException(context, ex);
                 throw;
             }
+            finally
+            {
+                context.StreamWriteLock.Release();
+            }
         }
 
         /// <summary>
@@ -208,6 +233,7 @@ namespace NTDLS.DatagramMessaging.Framing
         /// <param name="port">Port to dispatch the datagram to.</param>
         public static void Dispatch(this UdpClient udpClient, DmContext context, byte[] datagramBytes, string hostOrIPAddress, int port)
         {
+            context.StreamWriteLock.Wait();
             try
             {
                 context.LastActivityUTC = DateTime.UtcNow;
@@ -220,6 +246,198 @@ namespace NTDLS.DatagramMessaging.Framing
             {
                 context.Messenger.InvokeOnException(context, ex);
                 throw;
+            }
+            finally
+            {
+                context.StreamWriteLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Sends a one-time fire-and-forget datagram.
+        /// </summary>
+        /// <param name="udpClient">The client to send the data on.</param>
+        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="datagram">The datagram that will be sent.</param>
+        /// <param name="iPEndPoint">The endpoint to send the datagram to.</param>
+        public static async Task DispatchAsync(this UdpClient udpClient, DmContext context, IDmDatagram datagram, IPEndPoint iPEndPoint)
+        {
+            await context.StreamWriteLock.WaitAsync();
+            try
+            {
+                //Keep-alive messages are not considered activity for the purposes of updating the LastActivityUTC property.
+                if (datagram is not DmKeepAliveDatagram)
+                {
+                    context.LastActivityUTC = DateTime.UtcNow;
+                }
+
+                var frameBody = new FrameBody(context.GetSerializationProvider(), datagram);
+                var frameBytes = AssembleFrame(context, frameBody);
+                await udpClient.SendAsync(frameBytes, frameBytes.Length, iPEndPoint);
+            }
+            catch (Exception ex)
+            {
+                context.Messenger.InvokeOnException(context, ex);
+                throw;
+            }
+            finally
+            {
+                context.StreamWriteLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Sends a one-time fire-and-forget datagram.
+        /// </summary>
+        /// <param name="udpClient">The client to send the data on.</param>
+        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="datagram">The datagram that will be sent.</param>
+        /// <param name="hostOrIPAddress">Host or IP address to dispatch the datagram to.</param>
+        /// <param name="port">Port to dispatch the datagram to.</param>
+        public static async Task DispatchAsync(this UdpClient udpClient, DmContext context, IDmDatagram datagram, string hostOrIPAddress, int port)
+        {
+            await context.StreamWriteLock.WaitAsync();
+            try
+            {
+                //Keep-alive messages are not considered activity for the purposes of updating the LastActivityUTC property.
+                if (datagram is not DmKeepAliveDatagram)
+                {
+                    context.LastActivityUTC = DateTime.UtcNow;
+                }
+
+                var frameBody = new FrameBody(context.GetSerializationProvider(), datagram);
+                var frameBytes = AssembleFrame(context, frameBody);
+                await udpClient.SendAsync(frameBytes, frameBytes.Length, hostOrIPAddress, port);
+            }
+            catch (Exception ex)
+            {
+                context.Messenger.InvokeOnException(context, ex);
+                throw;
+            }
+            finally
+            {
+                context.StreamWriteLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Sends a one-time fire-and-forget datagram.
+        /// </summary>
+        /// <param name="udpClient">The client to send the data on.</param>
+        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="datagram">The datagram that will be sent.</param>
+        public static async Task DispatchAsync(this UdpClient udpClient, DmContext context, IDmDatagram datagram)
+        {
+            await context.StreamWriteLock.WaitAsync();
+            try
+            {
+                //Keep-alive messages are not considered activity for the purposes of updating the LastActivityUTC property.
+                if (datagram is not DmKeepAliveDatagram)
+                {
+                    context.LastActivityUTC = DateTime.UtcNow;
+                }
+
+                var frameBody = new FrameBody(context.GetSerializationProvider(), datagram);
+                var frameBytes = AssembleFrame(context, frameBody);
+                await udpClient.SendAsync(frameBytes, frameBytes.Length);
+            }
+            catch (Exception ex)
+            {
+                context.Messenger.InvokeOnException(context, ex);
+                throw;
+            }
+            finally
+            {
+                context.StreamWriteLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Sends a one-time fire-and-forget byte array datagram. These are and handled in ProcessDatagramCallback().
+        /// When a raw byte array is use, all json serialization is skipped and checks for this datagram type are prioritized for performance.
+        /// </summary>
+        /// <param name="udpClient">The client to send the data on.</param>
+        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="datagramBytes">The bytes will make up the body of the frame which is written.</param>
+        public static async Task DispatchAsync(this UdpClient udpClient, DmContext context, byte[] datagramBytes)
+        {
+            await context.StreamWriteLock.WaitAsync();
+            try
+            {
+                context.LastActivityUTC = DateTime.UtcNow;
+
+                var frameBody = new FrameBody(datagramBytes);
+                var frameBytes = AssembleFrame(context, frameBody);
+                await udpClient.SendAsync(frameBytes, frameBytes.Length);
+            }
+            catch (Exception ex)
+            {
+                context.Messenger.InvokeOnException(context, ex);
+                throw;
+            }
+            finally
+            {
+                context.StreamWriteLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Sends a one-time fire-and-forget byte array datagram. These are and handled in ProcessDatagramCallback().
+        /// When a raw byte array is use, all json serialization is skipped and checks for this datagram type are prioritized for performance.
+        /// </summary>
+        /// <param name="udpClient">The client to send the data on.</param>
+        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="datagramBytes">The bytes will make up the body of the frame which is written.</param>
+        /// <param name="iPEndPoint">The endpoint to send the datagram to.</param>
+        public static async Task DispatchAsync(this UdpClient udpClient, DmContext context, byte[] datagramBytes, IPEndPoint iPEndPoint)
+        {
+            await context.StreamWriteLock.WaitAsync();
+            try
+            {
+                context.LastActivityUTC = DateTime.UtcNow;
+
+                var frameBody = new FrameBody(datagramBytes);
+                var frameBytes = AssembleFrame(context, frameBody);
+                await udpClient.SendAsync(frameBytes, frameBytes.Length, iPEndPoint);
+            }
+            catch (Exception ex)
+            {
+                context.Messenger.InvokeOnException(context, ex);
+                throw;
+            }
+            finally
+            {
+                context.StreamWriteLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Sends a one-time fire-and-forget datagram.
+        /// </summary>
+        /// <param name="udpClient">The client to send the data on.</param>
+        /// <param name="context">Contains information about the endpoint and the connection.</param>
+        /// <param name="datagramBytes">The bytes will make up the body of the frame which is written.</param>
+        /// <param name="hostOrIPAddress">Host or IP address to dispatch the datagram to.</param>
+        /// <param name="port">Port to dispatch the datagram to.</param>
+        public static async Task DispatchAsync(this UdpClient udpClient, DmContext context, byte[] datagramBytes, string hostOrIPAddress, int port)
+        {
+            await context.StreamWriteLock.WaitAsync();
+            try
+            {
+                context.LastActivityUTC = DateTime.UtcNow;
+
+                var frameBody = new FrameBody(datagramBytes);
+                var frameBytes = AssembleFrame(context, frameBody);
+                await udpClient.SendAsync(frameBytes, frameBytes.Length, hostOrIPAddress, port);
+            }
+            catch (Exception ex)
+            {
+                context.Messenger.InvokeOnException(context, ex);
+                throw;
+            }
+            finally
+            {
+                context.StreamWriteLock.Release();
             }
         }
 
@@ -380,7 +598,7 @@ namespace NTDLS.DatagramMessaging.Framing
                     else if (datagram is DmKeepAliveReplyDatagram dmKeepAliveReply)
                     {
                         context.LastActivityUTC = DateTime.UtcNow;
-                        context.RoundTripTimeMilliseconds = (context.LastActivityUTC - dmKeepAliveReply.TimeStampUTC).Milliseconds;
+                        context.RoundTripTimeMilliseconds = (context.LastActivityUTC - dmKeepAliveReply.TimeStampUTC).TotalMilliseconds;
 
                         Task.Run(() =>
                         {

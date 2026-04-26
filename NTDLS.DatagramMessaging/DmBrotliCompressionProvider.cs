@@ -28,7 +28,7 @@ namespace NTDLS.DatagramMessaging
         /// </summary>
         public DmBrotliCompressionProvider(CompressionLevel compressionLevel)
         {
-            CompressionLevel = CompressionLevel;
+            CompressionLevel = compressionLevel;
         }
 
         /// <summary>

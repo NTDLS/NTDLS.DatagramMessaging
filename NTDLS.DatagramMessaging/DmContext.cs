@@ -12,6 +12,12 @@ namespace NTDLS.DatagramMessaging
     public class DmContext
     {
         /// <summary>
+        /// Used for UdpClient stream write operations to ensure that only one write operation
+        /// is occurring at a time, since UdpClient does not support concurrent writes.
+        /// </summary>
+        internal SemaphoreSlim StreamWriteLock { get; private set; } = new(1, 1);
+
+        /// <summary>
         /// Gets a value indicating whether the component has been shut down.
         /// </summary>
         public bool IsShutdown { get; private set; } = false;

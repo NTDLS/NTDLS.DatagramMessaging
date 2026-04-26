@@ -14,6 +14,8 @@ namespace ServerByEvent
             messenger.OnDatagramReceived += UdpManager_OnDatagramReceived;
             messenger.OnException += DmServer_OnException;
 
+            Console.ReadLine();
+
             messenger.Stop();
         }
 
