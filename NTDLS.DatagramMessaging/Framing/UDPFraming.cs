@@ -59,7 +59,10 @@ namespace NTDLS.DatagramMessaging.Framing
             }
             catch (Exception ex)
             {
-                messenger.InvokeOnException(null, ex);
+                if (messenger.IsReceiveRunning) //Otherwise it's the socket closing as the messenger stops.
+                {
+                    messenger.InvokeOnException(null, ex);
+                }
             }
 
             return false;

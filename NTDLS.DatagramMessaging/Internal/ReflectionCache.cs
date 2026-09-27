@@ -96,7 +96,10 @@ namespace NTDLS.DatagramMessaging.Internal
         {
             var datagramType = datagram.GetType();
 
-            return DmCaching.GetOrCreateOneMinute(datagramType, (o) =>
+            //The cache is shared by every messenger in the process, and each messenger has its own handler for the same
+            //  datagram type (a server and a client in one process, say), so the key is the handler method as well as
+            //  the type: keyed by the type alone, the first messenger's handler would be invoked on the others'.
+            return DmCaching.GetOrCreateOneMinute((cachedMethod.Method, datagramType), (o) =>
             {
                 if (datagramType.IsGenericType && cachedMethod.Method.IsGenericMethod == true)
                 {

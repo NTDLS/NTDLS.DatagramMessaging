@@ -224,20 +224,27 @@ namespace NTDLS.DatagramMessaging
         {
             try
             {
-                if (_keepReceiveRunning)
+                StopContextCustodian();
+
+                //Each context's keep-alive timer would otherwise go on sending on the closed socket.
+                foreach (var context in _endpointContexts.Values)
                 {
-                    StopContextCustodian();
-
-                    _keepReceiveRunning = false;
-                    if (waitForCompletion)
-                    {
-                        _receiveThread?.Join();
-                    }
-                    _receiveThread = null;
-
-                    try { UdpClient?.Close(); } catch { }
-                    try { UdpClient?.Dispose(); } catch { }
+                    context.Shutdown();
                 }
+                _endpointContexts.Clear();
+
+                bool wasReceiving = _keepReceiveRunning;
+                _keepReceiveRunning = false;
+
+                //The receive thread blocks in Receive() until a datagram arrives: closing the socket is what wakes it, so
+                //  close it first, then wait on the thread.
+                try { UdpClient?.Close(); } catch { }
+                if (wasReceiving && waitForCompletion && _receiveThread != null && _receiveThread != Thread.CurrentThread)
+                {
+                    _receiveThread.Join();
+                }
+                _receiveThread = null;
+                try { UdpClient?.Dispose(); } catch { }
             }
             catch (Exception ex)
             {
@@ -536,7 +543,10 @@ namespace NTDLS.DatagramMessaging
                         }
                         catch (Exception ex)
                         {
-                            OnException?.Invoke(null, ex);
+                            if (_keepReceiveRunning) //Otherwise it's the socket closing as we stop.
+                            {
+                                OnException?.Invoke(null, ex);
+                            }
                         }
                     }
                 })
